@@ -1,0 +1,37 @@
+
+.add-company-container {
+    width: 300px;
+    margin: 50px auto;
+    padding: 25px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    text-align: center;
+    background-color: #fafafa;
+  }
+  .company-image {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    margin-top: 10px;
+    border-radius: 8px;
+  }
+  
+  
+  .add-company-container input {
+    display: block;
+    width: 90%;
+    margin: 10px auto;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #aaa;
+  }
+  
+  .add-company-container button {
+    padding: 10px 20px;
+    background-color: #2196f3;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  

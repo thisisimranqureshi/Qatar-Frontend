@@ -1,0 +1,33 @@
+/* styles/Home.css */
+.home-container {
+    text-align: center;
+    padding: 20px;
+  }
+  
+  .company-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  
+  .company-card {
+    padding: 15px 25px;
+    margin: 10px;
+    border: 1px solid #aaa;
+    border-radius: 10px;
+    background-color: #f2f2f2;
+    font-weight: bold;
+  }
+  
+  .add-button {
+    margin-top: 30px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
