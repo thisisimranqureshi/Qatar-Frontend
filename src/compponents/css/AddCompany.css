@@ -1,37 +1,37 @@
-
 .add-company-container {
-    width: 300px;
-    margin: 50px auto;
-    padding: 25px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    text-align: center;
-    background-color: #fafafa;
-  }
-  .company-image {
-    width: 100px;
-    height: 100px;
-    object-fit: cover;
-    margin-top: 10px;
-    border-radius: 8px;
-  }
-  
-  
-  .add-company-container input {
-    display: block;
-    width: 90%;
-    margin: 10px auto;
-    padding: 8px;
-    border-radius: 5px;
-    border: 1px solid #aaa;
-  }
-  
-  .add-company-container button {
-    padding: 10px 20px;
-    background-color: #2196f3;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  
+  max-width: 400px;
+  margin: auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.add-company-container input {
+  display: block;
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.add-company-container button {
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.image-preview img {
+  max-width: 100%;
+  height: auto;
+  margin-top: 10px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+}

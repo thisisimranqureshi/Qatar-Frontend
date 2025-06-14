@@ -31,6 +31,18 @@ function Home() {
     navigate(`/company/${companyId}`);
   };
 
+  const handleDeleteCompany = async (companyId) => {
+    if (!window.confirm('Are you sure you want to delete this company?')) return;
+
+    try {
+      await axios.delete(`http://localhost:3500/companies/${companyId}`);
+      setCompanies(companies.filter(company => company._id !== companyId));
+    } catch (err) {
+      console.error('Error deleting company:', err);
+      alert('Failed to delete the company.');
+    }
+  };
+
   return (
     <div className="home-container">
       <h1>Companies</h1>
@@ -39,19 +51,21 @@ function Home() {
           <p>No companies available.</p>
         ) : (
           companies.map((company) => (
-            <div
-              key={company._id}
-              className="company-card"
-              onClick={() => handleCompanyClick(company._id)}
-            >
-              <p><strong>{company.name}</strong></p>
-              {company.image && (
+            <div key={company._id} className="company-card">
+              <div className="company-info" onClick={() => handleCompanyClick(company._id)}>
                 <img
-                  src={company.image}
-                  alt={company.name}
+                  src={company.image || "/pics/default-logo.jpg"}
+                  alt={`${company.name} logo`}
                   className="company-image"
                 />
-              )}
+                <p><strong>{company.name}</strong></p>
+              </div>
+              <button
+                className="delete-button"
+                onClick={() => handleDeleteCompany(company._id)}
+              >
+                Delete
+              </button>
             </div>
           ))
         )}

@@ -1,33 +1,66 @@
-/* styles/Home.css */
 .home-container {
-    text-align: center;
-    padding: 20px;
-  }
-  
-  .company-list {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin-top: 20px;
-  }
-  
-  .company-card {
-    padding: 15px 25px;
-    margin: 10px;
-    border: 1px solid #aaa;
-    border-radius: 10px;
-    background-color: #f2f2f2;
-    font-weight: bold;
-  }
-  
-  .add-button {
-    margin-top: 30px;
-    padding: 10px 20px;
-    font-size: 16px;
-    background-color: #4caf50;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  
+  text-align: center;
+  padding: 20px;
+}
+
+.company-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.company-card {
+  width: 200px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 15px;
+  margin: 10px;
+  background-color: #fafafa;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.2s ease;
+}
+
+.company-card:hover {
+  transform: translateY(-4px);
+}
+
+.company-info {
+  cursor: pointer;
+  text-align: center;
+}
+
+.company-image {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  border-radius: 50%;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+}
+
+.delete-button {
+  margin-top: 10px;
+  padding: 5px 12px;
+  font-size: 14px;
+  background-color: #e53935;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.add-button {
+  margin-top: 30px;
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}

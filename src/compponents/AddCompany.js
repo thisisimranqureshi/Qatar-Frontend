@@ -1,4 +1,3 @@
-// AddCompany.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './css/AddCompany.css';
@@ -6,10 +5,10 @@ import './css/AddCompany.css';
 function AddCompany() {
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
-  const [image, setImage] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const navigate = useNavigate();
 
-  // ✅ Correct way to load from localStorage
   const userEmail = localStorage.getItem('userEmail');
   const userName = localStorage.getItem('userName');
 
@@ -22,24 +21,32 @@ function AddCompany() {
     });
   };
 
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    setImageFile(file);
+
+    if (file) {
+      const base64 = await convertToBase64(file);
+      setImagePreview(base64); // Show preview
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     let base64Image = null;
-    if (image) {
-      base64Image = await convertToBase64(image);
+    if (imageFile) {
+      base64Image = await convertToBase64(imageFile);
     }
 
     const response = await fetch('http://localhost:3500/add-company', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name,
         location,
         image: base64Image,
-        userEmail,  // ✅ Now correct
+        userEmail,
         userName
       })
     });
@@ -74,8 +81,15 @@ function AddCompany() {
         <input
           type="file"
           accept="image/*"
-          onChange={(e) => setImage(e.target.files[0])}
+          onChange={handleImageChange}
         />
+
+        {imagePreview && (
+          <div className="image-preview">
+            <img src={imagePreview} alt="Preview" />
+          </div>
+        )}
+
         <button type="submit">Save Company</button>
       </form>
     </div>

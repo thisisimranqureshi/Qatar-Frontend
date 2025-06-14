@@ -3,11 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './css/Login.css';
 
 const Login = () => {
-  const [form, setForm] = useState({
-    email: '',
-    password: ''
-  });
-
+  const [form, setForm] = useState({ email: '', password: '' });
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
 
@@ -17,24 +13,20 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     try {
       const res = await fetch('http://localhost:3500/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
       });
-  
+
       const data = await res.json();
-  
+
       if (res.ok) {
-        // Store relevant user data
         localStorage.setItem('userEmail', data.email);
         localStorage.setItem('userName', data.name);
-        localStorage.setItem('userRole', data.role); // 'ceo' or 'manager'
-  
+        localStorage.setItem('userRole', data.role);
         setMessage(data.message || 'Login successful');
         navigate('/Home');
       } else {
@@ -50,50 +42,59 @@ const Login = () => {
       setMessage('Server error');
     }
   };
-  
 
   const handleSignupClick = () => {
     navigate('/');
   };
 
   return (
-    <div className="login-wrapper">
-      <form onSubmit={handleSubmit} className="login-form">
-        <h2 className="login-title">Login</h2>
+    <div className="login-container">
+      <div className="login-box">
+        <div className="login-left"></div>
 
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={form.email}
-          onChange={handleChange}
-          required
-          className="login-input"
-        />
+        <div className="login-right">
+          <form onSubmit={handleSubmit} className="login-form">
+            <h2 className="login-title">Login</h2>
 
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          value={form.password}
-          onChange={handleChange}
-          required
-          className="login-input"
-        />
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              value={form.email}
+              onChange={handleChange}
+              required
+              className="login-input"
+            />
 
-        <button type="submit" className="login-button">
-          Login
-        </button>
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              value={form.password}
+              onChange={handleChange}
+              required
+              className="login-input"
+            />
 
-        {message && <p className="login-message">{message}</p>}
+            <button type="submit" className="login-button">
+              Login
+            </button>
 
-        <div className="login-redirect">
-          <span>Don't have an account?</span>
-          <button type="button" onClick={handleSignupClick} className="signup-link">
-            Signup
-          </button>
+            {message && <p className="login-message">{message}</p>}
+
+            <div className="login-signup-redirect">
+              Don't have an account?
+              <button
+                type="button"
+                onClick={handleSignupClick}
+                className="signup-link"
+              >
+                Signup
+              </button>
+            </div>
+          </form>
         </div>
-      </form>
+      </div>
     </div>
   );
 };

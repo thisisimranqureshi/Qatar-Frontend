@@ -1,15 +1,9 @@
-// Signup.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './css/Signup.css';
 
 const Signup = () => {
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    password: ''
-  });
-
+  const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
 
@@ -24,7 +18,7 @@ const Signup = () => {
       const res = await fetch('http://localhost:3500/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
+        body: JSON.stringify(form),
       });
 
       const data = await res.json();
@@ -42,57 +36,63 @@ const Signup = () => {
   };
 
   return (
-    <div className="signup-wrapper">
-      <form onSubmit={handleSubmit} className="signup-form">
-        <h2 className="signup-title">Signup</h2>
+    <div className="signup-container">
+      <div className="signup-box">
+        <div className="signup-left" /> {/* Logo via CSS background */}
 
-        <input
-          type="text"
-          name="name"
-          placeholder="Name"
-          value={form.name}
-          onChange={handleChange}
-          required
-          className="signup-input"
-        />
+        <div className="signup-right">
+          <form onSubmit={handleSubmit} className="signup-form">
+            <h2 className="signup-title">Create Your Account</h2>
 
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={form.email}
-          onChange={handleChange}
-          required
-          className="signup-input"
-        />
+            <input
+              type="text"
+              name="name"
+              placeholder="Full Name"
+              value={form.name}
+              onChange={handleChange}
+              required
+              className="signup-input"
+            />
 
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          value={form.password}
-          onChange={handleChange}
-          required
-          className="signup-input"
-        />
+            <input
+              type="email"
+              name="email"
+              placeholder="Email Address"
+              value={form.email}
+              onChange={handleChange}
+              required
+              className="signup-input"
+            />
 
-        <button type="submit" className="signup-button">
-          Signup
-        </button>
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              value={form.password}
+              onChange={handleChange}
+              required
+              className="signup-input"
+            />
 
-        {message && <p className="signup-message">{message}</p>}
+            <button type="submit" className="signup-button">
+              Sign Up
+            </button>
 
-        <div className="signup-login-redirect">
-          <span>Already have an account?</span>
-          <button
-            type="button"
-            onClick={() => navigate('/login')}
-            className="login-link"
-          >
-            Login
-          </button>
+            {message && <p className="signup-message">{message}</p>}
+
+            <div className="signup-login-redirect">
+              <span>Already have an account?</span>
+              <button
+                type="button"
+                onClick={() => navigate('/login')}
+                className="login-link"
+              >
+                Login
+              </button>
+            </div>
+          </form>
         </div>
-      </form>
+      </div>
     </div>
   );
 };
