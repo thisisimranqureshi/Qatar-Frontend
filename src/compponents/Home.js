@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import logos from '../pics/Logo.jpg';
 import './css/Home.css';
 
 function Home() {
   const navigate = useNavigate();
   const [companies, setCompanies] = useState([]);
+  const userName = localStorage.getItem('userName'); // get user name
 
   useEffect(() => {
     const userEmail = localStorage.getItem('userEmail');
@@ -16,14 +18,15 @@ function Home() {
       return;
     }
 
-    axios.get('http://localhost:3500/companies', {
-      params: { userEmail, role }
-    })
+    axios
+      .get('http://localhost:3500/companies', {
+        params: { userEmail, role },
+      })
       .then((res) => {
         setCompanies(res.data);
       })
       .catch((err) => {
-        console.error("Error fetching companies:", err);
+        console.error('Error fetching companies:', err);
       });
   }, []);
 
@@ -36,7 +39,7 @@ function Home() {
 
     try {
       await axios.delete(`http://localhost:3500/companies/${companyId}`);
-      setCompanies(companies.filter(company => company._id !== companyId));
+      setCompanies(companies.filter((company) => company._id !== companyId));
     } catch (err) {
       console.error('Error deleting company:', err);
       alert('Failed to delete the company.');
@@ -44,26 +47,28 @@ function Home() {
   };
 
   return (
-    <div className="home-container">
-      <h1>Companies</h1>
-      <div className="company-list">
+    <div className="home-wrapper">
+      <header className="home-header">
+        <img src={logos} alt="Company Logo" className="logo" />
+        <h1>Company Management Portal</h1>
+        {userName && <p className="welcome-text">Welcome, {userName} 👋</p>}
+      </header>
+
+      <div className="company-grid">
         {companies.length === 0 ? (
-          <p>No companies available.</p>
+          <p className="empty-message">No companies available.</p>
         ) : (
           companies.map((company) => (
             <div key={company._id} className="company-card">
               <div className="company-info" onClick={() => handleCompanyClick(company._id)}>
                 <img
-                  src={company.image || "/pics/default-logo.jpg"}
+                  src={company.image || logos}
                   alt={`${company.name} logo`}
                   className="company-image"
                 />
-                <p><strong>{company.name}</strong></p>
+                <h3>{company.name}</h3>
               </div>
-              <button
-                className="delete-button"
-                onClick={() => handleDeleteCompany(company._id)}
-              >
+              <button className="delete-button" onClick={() => handleDeleteCompany(company._id)}>
                 Delete
               </button>
             </div>
@@ -72,12 +77,8 @@ function Home() {
       </div>
 
       <button className="add-button" onClick={() => navigate('/add-company')}>
-        Add Company
+        + Add Company
       </button>
-      <button className="add-button" onClick={() => navigate('/dashboard')}>
-        dashboard
-      </button>
-      
     </div>
   );
 }

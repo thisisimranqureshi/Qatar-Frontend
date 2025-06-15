@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiMenu, FiX, FiHome, FiPlus, FiLogOut } from 'react-icons/fi';
+import { RxDashboard } from "react-icons/rx";
 import './css/Sidebar.css';
 
 const Sidebar = () => {
@@ -19,9 +20,11 @@ const Sidebar = () => {
       <div className={`sidebar ${isOpen ? 'open' : ''}`}>
         <h2 className="sidebar-title">Dashboard</h2>
         <nav>
+        <Link to="/dashboard" className="sidebar-link"><RxDashboard />Dashboard</Link>
           <Link to="/home" className="sidebar-link"><FiHome /> Home</Link>
           <Link to="/add-company" className="sidebar-link"><FiPlus /> Add Company</Link>
           <Link to="/" className="sidebar-link"><FiLogOut /> Logout</Link>
+          
         </nav>
       </div>
 

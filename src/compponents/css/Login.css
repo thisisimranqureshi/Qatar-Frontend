@@ -27,7 +27,7 @@ body {
 
 .login-left {
   flex: 1;
-  background: url('../../../public/pics/Logo.jpg') no-repeat center center;
+  background: url('../../pics/Logo.jpg') no-repeat center center;
   background-size: cover;
   border-top-left-radius: 20px;
   border-bottom-left-radius: 20px;
