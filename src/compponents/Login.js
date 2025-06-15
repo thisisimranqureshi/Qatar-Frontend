@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './css/Login.css';
 
-const Login = () => {
+const Login = ({ setUserEmail, setUserName, setUserRole }) => {
   const [form, setForm] = useState({ email: '', password: '' });
   const [message, setMessage] = useState('');
+  
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -24,11 +25,17 @@ const Login = () => {
       const data = await res.json();
 
       if (res.ok) {
-        localStorage.setItem('userEmail', data.email);
-        localStorage.setItem('userName', data.name);
-        localStorage.setItem('userRole', data.role);
-        setMessage(data.message || 'Login successful');
-        navigate('/Home');
+        if (res.ok) {
+          localStorage.setItem('userEmail', data.email);
+          localStorage.setItem('userName', data.name);
+          localStorage.setItem('userRole', data.role);
+          setUserEmail(data.email);
+          setUserName(data.name);
+          setUserRole(data.role); // ✅ This is important!
+          setMessage(data.message || 'Login successful');
+          navigate('/dashboard'); // you can also use `/dashboard` here directly if you prefer
+        }
+
       } else {
         if (data.error === 'User not found') {
           setMessage('Email is incorrect');

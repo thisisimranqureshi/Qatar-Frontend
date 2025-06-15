@@ -74,6 +74,10 @@ function Home() {
       <button className="add-button" onClick={() => navigate('/add-company')}>
         Add Company
       </button>
+      <button className="add-button" onClick={() => navigate('/dashboard')}>
+        dashboard
+      </button>
+      
     </div>
   );
 }
