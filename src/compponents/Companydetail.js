@@ -6,157 +6,117 @@ import './css/Companydetail.css';
 const CompanyDetails = () => {
   const { id } = useParams();
   const [company, setCompany] = useState(null);
+  const [newSector, setNewSector] = useState('');
+  const [newCategoryInputs, setNewCategoryInputs] = useState({});
   const [newEntries, setNewEntries] = useState({});
 
+  const fetchCompany = async () => {
+    const res = await axios.get(`http://localhost:3500/company/${id}`);
+    setCompany(res.data);
+  };
+
   useEffect(() => {
-    axios.get(`http://localhost:3500/company/${id}`).then(res => {
-      setCompany(res.data);
-    });
+    fetchCompany();
   }, [id]);
 
-  const handleInputChange = (index, field, value, type = 'month') => {
+  const handleAddSector = async () => {
+    if (!newSector.trim()) return alert("Sector name required");
+    try {
+      await axios.post(`http://localhost:3500/company/${id}/add-sector`, { sectorName: newSector });
+      await fetchCompany();
+      setNewSector('');
+    } catch (err) {
+      console.error(err);
+      alert("Error adding sector");
+    }
+  };
+
+  const handleAddCategory = async (sectorIndex) => {
+    const categoryName = newCategoryInputs[sectorIndex];
+    if (!categoryName) return alert("Category name required");
+    try {
+      await axios.post(`http://localhost:3500/company/${id}/add-category`, {
+        sectorIndex,
+        categoryName
+      });
+      await fetchCompany();
+      setNewCategoryInputs(prev => ({ ...prev, [sectorIndex]: '' }));
+    } catch (err) {
+      console.error(err);
+      alert("Error adding category");
+    }
+  };
+
+  const handleInputChange = (sectorIndex, categoryIndex, field, value, type = 'month') => {
     setNewEntries(prev => ({
       ...prev,
-      [index]: {
-        ...prev[index],
-        [type]: {
-          ...prev[index]?.[type],
-          [field]: value
-        }
-      }
+      [sectorIndex]: {
+        ...prev[sectorIndex],
+        [categoryIndex]: {
+          ...prev[sectorIndex]?.[categoryIndex],
+          [type]: {
+            ...prev[sectorIndex]?.[categoryIndex]?.[type],
+            [field]: value,
+          },
+        },
+      },
     }));
   };
 
-  const handleAddEntry = async (index) => {
-    const entry = newEntries[index]?.month;
-    if (!entry?.month || entry.budget === undefined || entry.expense === undefined)
-      return alert("Fill all monthly fields");
+  const handleAddEntry = async (sectorIndex, categoryIndex, type = 'month') => {
+    const entry = newEntries[sectorIndex]?.[categoryIndex]?.[type];
+    const period = type === 'month' ? entry?.month : entry?.year;
+
+    if (!period || entry?.budget === undefined || entry?.expense === undefined)
+      return alert(`Fill all ${type} fields`);
+
+    const route =
+      type === 'month'
+        ? '/update-cat'
+        : '/update-yearly-category';
 
     try {
-      await axios.post(`http://localhost:3500/company/${id}/update-category`, {
-        categoryIndex: index,
-        month: entry.month,
-        monthlyBudget: Number(entry.budget),
-        monthlyExpense: Number(entry.expense)
+      await axios.post(`http://localhost:3500/company/${id}${route}`, {
+        sectorIndex,
+        categoryIndex,
+        [type === 'month' ? 'month' : 'month']: period,
+        [`${type}lyBudget`]: Number(entry.budget),
+        [`${type}lyExpense`]: Number(entry.expense),
       });
 
-      const updated = await axios.get(`http://localhost:3500/company/${id}`);
-      setCompany(updated.data);
-      setNewEntries(prev => ({ ...prev, [index]: { ...prev[index], month: {} } }));
+      await fetchCompany();
+
+      setNewEntries(prev => ({
+        ...prev,
+        [sectorIndex]: {
+          ...prev[sectorIndex],
+          [categoryIndex]: {
+            ...prev[sectorIndex]?.[categoryIndex],
+            [type]: {},
+          },
+        },
+      }));
     } catch (err) {
-      console.error(err);
-      alert("Error adding monthly entry");
+      console.error(`Error adding ${type}ly entry`, err);
+      alert(`Error adding ${type}ly entry`);
     }
-  };
-
-  const handleAddYearlyEntry = async (index) => {
-    const entry = newEntries[index]?.year;
-    if (!entry?.year || entry.budget === undefined || entry.expense === undefined)
-      return alert("Fill all yearly fields");
-
-    try {
-      await axios.post(`http://localhost:3500/company/${id}/update-category`, {
-        categoryIndex: index,
-        year: entry.year,
-        yearlyBudget: Number(entry.budget),
-        yearlyExpense: Number(entry.expense)
-      });
-
-      const updated = await axios.get(`http://localhost:3500/company/${id}`);
-      setCompany(updated.data);
-      setNewEntries(prev => ({ ...prev, [index]: { ...prev[index], year: {} } }));
-    } catch (err) {
-      console.error(err);
-      alert("Error adding yearly entry");
-    }
-  };
-
-  const handleDelete = async (index, monthKey) => {
-    try {
-      await axios.post(`http://localhost:3500/company/${id}/delete-month`, {
-        categoryIndex: index,
-        monthKey
-      });
-      const updated = await axios.get(`http://localhost:3500/company/${id}`);
-      setCompany({ ...updated.data });
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handleDeleteYearly = async (index, yearKey) => {
-    try {
-      await axios.post(`http://localhost:3500/company/${id}/delete-year`, {
-        categoryIndex: index,
-        yearKey
-      });
-      const updated = await axios.get(`http://localhost:3500/company/${id}`);
-      setCompany(updated.data);
-    } catch (err) {
-      console.error(err);
-      alert("Error deleting yearly entry");
-    }
-  };
-
-  const handleUpdate = async (index, monthKey, budget, expense) => {
-    try {
-      await axios.post(`http://localhost:3500/company/${id}/update-category`, {
-        categoryIndex: index,
-        month: monthKey,
-        monthlyBudget: budget,
-        monthlyExpense: expense
-      });
-      const updated = await axios.get(`http://localhost:3500/company/${id}`);
-      setCompany(updated.data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const getCategoryTotals = (category) => {
-    let totalBudget = 0, totalExpense = 0;
-
-    if (category.yearly && typeof category.yearly === 'object') {
-      Object.values(category.yearly).forEach(entry => {
-        totalBudget += entry.budget || 0;
-        totalExpense += entry.expense || 0;
-      });
-    }
-
-    return { totalBudget, totalExpense };
-  };
-
-  const getMonthlyTotals = (category) => {
-    let totalBudget = 0, totalExpense = 0;
-
-    if (category.monthly && typeof category.monthly === 'object') {
-      Object.values(category.monthly).forEach(entry => {
-        totalBudget += entry.budget || 0;
-        totalExpense += entry.expense || 0;
-      });
-    }
-
-    return { totalBudget, totalExpense };
   };
 
   const getCompanyTotals = () => {
     let totalBudget = 0;
     let totalExpense = 0;
-
-    company.categories.forEach(category => {
-      if (category.yearly && typeof category.yearly === 'object') {
-        Object.values(category.yearly).forEach(entry => {
+    company?.sectors?.forEach(sector => {
+      sector.categories?.forEach(cat => {
+        Object.values(cat.yearly || {}).forEach(entry => {
           totalBudget += entry.budget || 0;
           totalExpense += entry.expense || 0;
         });
-      }
+      });
     });
-
     return { totalBudget, totalExpense };
   };
 
   if (!company) return <div className="loading">Loading...</div>;
-
   const { totalBudget, totalExpense } = getCompanyTotals();
   const profit = totalBudget - totalExpense;
 
@@ -165,170 +125,115 @@ const CompanyDetails = () => {
       <h2>{company.name} - {company.location}</h2>
 
       <div className="add-category-section">
-        <h3>Add New Category</h3>
+        <h3>Add New Sector</h3>
         <div className="input-group">
           <input
             type="text"
-            placeholder="Enter category name"
-            value={newEntries.newCategory || ''}
-            onChange={(e) =>
-              setNewEntries(prev => ({ ...prev, newCategory: e.target.value }))
-            }
+            placeholder="Enter sector name"
+            value={newSector}
+            onChange={(e) => setNewSector(e.target.value)}
           />
-          <button
-            className="add-category-btn"
-            onClick={async () => {
-              const name = newEntries.newCategory;
-              if (!name) return alert("Category name required");
-
-              try {
-                await axios.post(`http://localhost:3500/company/${id}/add-category`, { name });
-                const updated = await axios.get(`http://localhost:3500/company/${id}`);
-                setCompany(updated.data);
-                setNewEntries(prev => ({ ...prev, newCategory: '' }));
-              } catch (err) {
-                console.error(err);
-                alert("Error adding category");
-              }
-            }}
-          >
-            Add Category
+          <button className="add-category-btn" onClick={handleAddSector}>
+            Add Sector
           </button>
         </div>
       </div>
 
-      {company.categories.map((cat, index) => {
-        const monthlyEntries = Object.entries(cat.monthly || {});
-        const yearlyEntries = Object.entries(cat.yearly || {});
-        const yearlyTotals = getCategoryTotals(cat);
-        const monthlyTotals = getMonthlyTotals(cat);
+      {company.sectors?.map((sector, sIdx) => (
+        <div key={sIdx} className="sector-box">
+          <h3>Sector: {sector.sectorName}</h3>
 
-        return (
-          <div key={index} className="category-box">
-            <h3>Category: {cat.name}</h3>
-
-            <table className="budget-table">
-              <thead>
-                <tr>
-                  <th>Year</th>
-                  <th>Budget</th>
-                  <th>Expense</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {yearlyEntries.map(([year, { budget, expense }], i) => (
-                  <tr key={i}>
-                    <td>{year}</td>
-                    <td>{budget}</td>
-                    <td>{expense}</td>
-                    <td>
-                      <button onClick={() => handleDeleteYearly(index, year)}>Delete</button>
-                    </td>
-                  </tr>
-                ))}
-                <tr>
-                  <td>
-                    <input
-                      placeholder="2025"
-                      value={newEntries[index]?.year?.year || ''}
-                      onChange={(e) => handleInputChange(index, 'year', e.target.value, 'year')}
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="number"
-                      placeholder="Budget"
-                      value={newEntries[index]?.year?.budget || ''}
-                      onChange={(e) => handleInputChange(index, 'budget', e.target.value, 'year')}
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="number"
-                      placeholder="Expense"
-                      value={newEntries[index]?.year?.expense || ''}
-                      onChange={(e) => handleInputChange(index, 'expense', e.target.value, 'year')}
-                    />
-                  </td>
-                  <td>
-                    <button onClick={() => handleAddYearlyEntry(index)}>Add Entry</button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-
-            <table className="budget-table">
-              <thead>
-                <tr>
-                  <th>Month</th>
-                  <th>Budget</th>
-                  <th>Expense</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {monthlyEntries.map(([month, { budget, expense }], i) => (
-                  <tr key={i}>
-                    <td>{month}</td>
-                    <td>
-                      <input
-                        type="number"
-                        defaultValue={budget}
-                        onBlur={(e) => handleUpdate(index, month, Number(e.target.value), expense)}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        defaultValue={expense}
-                        onBlur={(e) => handleUpdate(index, month, budget, Number(e.target.value))}
-                      />
-                    </td>
-                    <td>
-                      <button onClick={() => handleDelete(index, month)}>Delete</button>
-                    </td>
-                  </tr>
-                ))}
-                <tr>
-                  <td>
-                    <input
-                      placeholder="2025-June"
-                      value={newEntries[index]?.month?.month || ''}
-                      onChange={(e) => handleInputChange(index, 'month', e.target.value, 'month')}
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="number"
-                      placeholder="Budget"
-                      value={newEntries[index]?.month?.budget || ''}
-                      onChange={(e) => handleInputChange(index, 'budget', e.target.value, 'month')}
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="number"
-                      placeholder="Expense"
-                      value={newEntries[index]?.month?.expense || ''}
-                      onChange={(e) => handleInputChange(index, 'expense', e.target.value, 'month')}
-                    />
-                  </td>
-                  <td>
-                    <button onClick={() => handleAddEntry(index)}>Add Entry</button>
-                  </td>
-                </tr>
-                <tr>
-                  <td><strong>Total</strong></td>
-                  <td><strong>{monthlyTotals.totalBudget}</strong></td>
-                  <td><strong>{monthlyTotals.totalExpense}</strong></td>
-                  <td></td>
-                </tr>
-              </tbody>
-            </table>
+          <div className="input-group">
+            <input
+              type="text"
+              placeholder="Add category name"
+              value={newCategoryInputs[sIdx] || ''}
+              onChange={(e) =>
+                setNewCategoryInputs(prev => ({ ...prev, [sIdx]: e.target.value }))
+              }
+            />
+            <button onClick={() => handleAddCategory(sIdx)}>Add Category</button>
           </div>
-        );
-      })}
+
+          {sector.categories?.map((cat, catIndex) => (
+            <div key={catIndex} className="category-box">
+              <h4>Category: {cat.name}</h4>
+
+              <div className="input-group">
+                <input
+                  type="text"
+                  placeholder="Month"
+                  value={newEntries[sIdx]?.[catIndex]?.month?.month || ''}
+                  onChange={(e) =>
+                    handleInputChange(sIdx, catIndex, 'month', e.target.value, 'month')
+                  }
+                />
+                <input
+                  type="number"
+                  placeholder="Monthly Budget"
+                  value={newEntries[sIdx]?.[catIndex]?.month?.budget || ''}
+                  onChange={(e) =>
+                    handleInputChange(sIdx, catIndex, 'budget', e.target.value, 'month')
+                  }
+                />
+                <input
+                  type="number"
+                  placeholder="Monthly Expense"
+                  value={newEntries[sIdx]?.[catIndex]?.month?.expense || ''}
+                  onChange={(e) =>
+                    handleInputChange(sIdx, catIndex, 'expense', e.target.value, 'month')
+                  }
+                />
+                <button onClick={() => handleAddEntry(sIdx, catIndex, 'month')}>Add Monthly</button>
+              </div>
+
+              <div className="input-group">
+                <input
+                  type="text"
+                  placeholder="Year"
+                  value={newEntries[sIdx]?.[catIndex]?.year?.year || ''}
+                  onChange={(e) =>
+                    handleInputChange(sIdx, catIndex, 'year', e.target.value, 'year')
+                  }
+                />
+                <input
+                  type="number"
+                  placeholder="Yearly Budget"
+                  value={newEntries[sIdx]?.[catIndex]?.year?.budget || ''}
+                  onChange={(e) =>
+                    handleInputChange(sIdx, catIndex, 'budget', e.target.value, 'year')
+                  }
+                />
+                <input
+                  type="number"
+                  placeholder="Yearly Expense"
+                  value={newEntries[sIdx]?.[catIndex]?.year?.expense || ''}
+                  onChange={(e) =>
+                    handleInputChange(sIdx, catIndex, 'expense', e.target.value, 'year')
+                  }
+                />
+                <button onClick={() => handleAddEntry(sIdx, catIndex, 'year')}>Add Yearly</button>
+              </div>
+
+              <div className="saved-entries">
+                <h5>Saved Monthly Entries:</h5>
+                {Object.entries(cat.monthly || {}).map(([month, val]) => (
+                  <div key={month}>
+                    {month}: Budget = {val.budget}, Expense = {val.expense}
+                  </div>
+                ))}
+
+                <h5>Saved Yearly Entries:</h5>
+                {Object.entries(cat.yearly || {}).map(([year, val]) => (
+                  <div key={year}>
+                    {year}: Budget = {val.budget}, Expense = {val.expense}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      ))}
 
       <div className="summary-section">
         <h2>Company Summary</h2>

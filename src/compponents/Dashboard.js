@@ -27,7 +27,6 @@ const Dashboard = () => {
     const role = localStorage.getItem("userRole");
 
     if (email && role) {
-      // Fetch overall dashboard data
       axios.get(`http://localhost:3500/dashboard?userEmail=${email}&role=${role}`)
         .then(res => {
           setData(res.data.graphData);
@@ -37,15 +36,16 @@ const Dashboard = () => {
         })
         .catch(err => console.error("Dashboard error:", err));
 
-      // ✅ Fetch combined category comparison for all companies
       axios.get(`http://localhost:3500/category-comparison?userEmail=${email}&role=${role}`)
         .then(res => {
           setCategoryComparison(res.data);
-          console.log("✅ Category Comparison Data:", res.data);
         })
         .catch(err => console.error("Category comparison error:", err));
     }
   }, []);
+
+  const chartWidth = Math.max(data.length * 80, 600);
+  const categoryChartWidth = Math.max(categoryComparison.length * 80, 600);
 
   return (
     <div className="dashboard-container">
@@ -53,16 +53,10 @@ const Dashboard = () => {
       <div className="card-group">
         <div className="card-content">
           <h2>Total Budget</h2>
-          <p className="text-green-600">Rs. {totalBudget.toLocaleString()}</p>
-        </div>
-        <div className="card-content">
-          <h2>Total Expenses</h2>
-          <p className="text-red-600">Rs. {totalExpense.toLocaleString()}</p>
-        </div>
-        <div className="card-content">
-          <h2>Profit / Loss</h2>
-          <p className={totalBudget - totalExpense >= 0 ? 'text-green-700' : 'text-red-700'}>
-            Rs. {(totalBudget - totalExpense).toLocaleString()}
+          <p className="text-green-600">Rs. {(totalBudget || 0).toLocaleString()}</p>
+          <p className="text-red-600">Rs. {(totalExpense || 0).toLocaleString()}</p>
+          <p className={(totalBudget - totalExpense >= 0 ? 'text-green-700' : 'text-red-700')}>
+            Rs. {((totalBudget || 0) - (totalExpense || 0)).toLocaleString()}
           </p>
         </div>
       </div>
@@ -70,15 +64,19 @@ const Dashboard = () => {
       {/* Yearly Budget vs Expense Chart */}
       <div className="bar-chart-container">
         <h3 className="chart-title">Yearly Budget vs Expense</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={data}>
-            <XAxis dataKey="year" />
-            <YAxis />
-            <Tooltip />
-            <Bar dataKey="budget" fill="#8884d8" name="Budget" />
-            <Bar dataKey="expense" fill="#82ca9d" name="Expense" />
-          </BarChart>
-        </ResponsiveContainer>
+        <div className="chart-scroll-wrapper">
+          <div style={{ minWidth: '600px', width: `${chartWidth}px` }}>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={data}>
+                <XAxis dataKey="year" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="budget" fill="#8884d8" name="Budget" />
+                <Bar dataKey="expense" fill="#82ca9d" name="Expense" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
       </div>
 
       {/* Pie Chart for Company Budget Distribution */}
@@ -113,15 +111,19 @@ const Dashboard = () => {
             No category data available
           </p>
         ) : (
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={categoryComparison}>
-              <XAxis dataKey="categoryName" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="yearlyBudget" fill="#ffc658" name="Yearly Budget" />
-              <Bar dataKey="yearlyExpense" fill="#ff8042" name="Yearly Expense" />
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="chart-scroll-wrapper">
+            <div style={{ minWidth: '600px', width: `${categoryChartWidth}px` }}>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={categoryComparison}>
+                  <XAxis dataKey="categoryName" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="yearlyBudget" fill="#ffc658" name="Yearly Budget" />
+                  <Bar dataKey="yearlyExpense" fill="#ff8042" name="Yearly Expense" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         )}
       </div>
     </div>
