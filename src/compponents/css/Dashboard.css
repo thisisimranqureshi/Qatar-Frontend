@@ -1,4 +1,19 @@
 /* DashboardStyles.css */
+/* Category-wise Bar Chart */
+.category-bar-chart-container {
+  background-color: #ffffff;
+  padding: 1rem;
+  border-radius: 1rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  margin-top: 1rem;
+}
+
+.category-bar-chart-container .chart-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
 
 .dashboard-container {
     padding: 1rem;
