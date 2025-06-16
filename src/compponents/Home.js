@@ -31,7 +31,7 @@ function Home() {
   }, []);
 
   const handleCompanyClick = (companyId) => {
-    navigate(`/company/${companyId}`);
+    navigate(`/type-selection/${companyId}`);
   };
 
   const handleDeleteCompany = async (companyId) => {

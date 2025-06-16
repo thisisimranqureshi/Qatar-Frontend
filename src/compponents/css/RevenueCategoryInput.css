@@ -1,0 +1,52 @@
+.category-input-container {
+    max-width: 500px;
+    margin: 60px auto;
+    padding: 30px;
+    background-color: #ffffff;
+    border: 2px solid #8884d8;
+    border-radius: 15px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  .category-input-container h2 {
+    text-align: center;
+    color: #444;
+    margin-bottom: 25px;
+    font-size: 24px;
+  }
+  
+  .category-input-container form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .category-input-container input {
+    padding: 12px 15px;
+    font-size: 16px;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    transition: border-color 0.3s ease;
+  }
+  
+  .category-input-container input:focus {
+    border-color: #8884d8;
+    outline: none;
+  }
+  
+  .category-input-container button {
+    padding: 12px;
+    font-size: 16px;
+    background-color: #8884d8;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .category-input-container button:hover {
+    background-color: #6f6ccf;
+  }
+  

@@ -1,0 +1,52 @@
+.category-input-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border: 1.5px solid #00C49F;
+    border-radius: 12px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+    font-family: 'Segoe UI', sans-serif;
+    text-align: center;
+  }
+  
+  .category-input-container h2 {
+    color: #00C49F;
+    font-size: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .category-input-container form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  
+  .category-input-container input {
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    transition: border-color 0.2s ease;
+  }
+  
+  .category-input-container input:focus {
+    border-color: #00C49F;
+    outline: none;
+  }
+  
+  .category-input-container button {
+    padding: 10px;
+    background-color: #00C49F;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+  }
+  
+  .category-input-container button:hover {
+    background-color: #009e85;
+  }
+  

@@ -1,0 +1,30 @@
+.type-selection-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 50px;
+  }
+  
+  .type-selection-container h2 {
+    margin-bottom: 20px;
+  }
+  
+  .type-btn {
+    width: 150px;
+    padding: 12px;
+    margin: 10px;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  
+  .expense {
+    background-color: #e74c3c;
+  }
+  
+  .revenue {
+    background-color: #2ecc71;
+  }
+  

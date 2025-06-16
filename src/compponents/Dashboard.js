@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
   BarChart,
@@ -21,27 +22,31 @@ const Dashboard = () => {
   const [totalBudget, setTotalBudget] = useState(0);
   const [totalExpense, setTotalExpense] = useState(0);
   const [companySummaries, setCompanySummaries] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const email = localStorage.getItem("userEmail");
     const role = localStorage.getItem("userRole");
 
-    if (email && role) {
-      axios.get(`http://localhost:3500/dashboard?userEmail=${email}&role=${role}`)
-        .then(res => {
-          setData(res.data.graphData);
-          setTotalBudget(res.data.totalBudget);
-          setTotalExpense(res.data.totalExpense);
-          setCompanySummaries(res.data.companySummaries);
-        })
-        .catch(err => console.error("Dashboard error:", err));
-
-      axios.get(`http://localhost:3500/category-comparison?userEmail=${email}&role=${role}`)
-        .then(res => {
-          setCategoryComparison(res.data);
-        })
-        .catch(err => console.error("Category comparison error:", err));
+    if (!email || !role) {
+      navigate("/login");
+      return;
     }
+
+    axios.get(`http://localhost:3500/dashboard?userEmail=${email}&role=${role}`)
+      .then(res => {
+        setData(res.data.graphData);
+        setTotalBudget(res.data.totalBudget);
+        setTotalExpense(res.data.totalExpense);
+        setCompanySummaries(res.data.companySummaries);
+      })
+      .catch(err => console.error("Dashboard error:", err));
+
+    axios.get(`http://localhost:3500/category-comparison?userEmail=${email}&role=${role}`)
+      .then(res => {
+        setCategoryComparison(res.data);
+      })
+      .catch(err => console.error("Category comparison error:", err));
   }, []);
 
   const chartWidth = Math.max(data.length * 80, 600);
