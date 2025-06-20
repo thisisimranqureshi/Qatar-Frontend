@@ -16,8 +16,6 @@ const RevenueSubCategory = () => {
   const [entries, setEntries] = useState([]);
   const [selectedYear, setSelectedYear] = useState('');
   const [selectedMonth, setSelectedMonth] = useState('');
-  const [showManualYearInput, setShowManualYearInput] = useState(false);
-  const [manualYear, setManualYear] = useState('');
 
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -27,7 +25,9 @@ const RevenueSubCategory = () => {
 
   const fetchEntries = async () => {
     try {
-      const res = await axios.get(`http://localhost:3500/api/revenue/subcategories?companyId=${companyId}&categoryName=${categoryName}`);
+      const res = await axios.get(
+        `http://localhost:3500/api/revenue/subcategories?companyId=${companyId}&categoryName=${categoryName}`
+      );
       const monthMap = {
         Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
         Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11,
@@ -35,7 +35,7 @@ const RevenueSubCategory = () => {
       const sortedData = res.data.sort((a, b) => {
         const dateA = new Date(a.year, monthMap[a.month]);
         const dateB = new Date(b.year, monthMap[b.month]);
-        return dateB - dateA; // Most recent first
+        return dateB - dateA;
       });
       setEntries(sortedData);
     } catch (err) {
@@ -45,13 +45,13 @@ const RevenueSubCategory = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const finalYear = showManualYearInput ? manualYear : year;
+
     const payload = {
       companyId,
       categoryName,
       subcategory,
       month,
-      year: finalYear,
+      year,
       expectedBudget: parseFloat(expectedBudget),
       actualBudget: parseFloat(actualBudget),
     };
@@ -62,8 +62,6 @@ const RevenueSubCategory = () => {
       setSubcategory('');
       setMonth('');
       setYear('');
-      setManualYear('');
-      setShowManualYearInput(false);
       setExpectedBudget('');
       setActualBudget('');
     } catch (err) {
@@ -90,6 +88,9 @@ const RevenueSubCategory = () => {
   });
   const groupedEntries = groupBySubcategory(filteredEntries);
 
+  const grandTotalExpected = filteredEntries.reduce((sum, e) => sum + e.expectedBudget, 0);
+  const grandTotalActual = filteredEntries.reduce((sum, e) => sum + e.actualBudget, 0);
+
   return (
     <div className="subcategory-form-container compact">
       <h2>Add Revenue Subcategory</h2>
@@ -111,31 +112,14 @@ const RevenueSubCategory = () => {
             ))}
           </select>
 
-          {!showManualYearInput ? (
-            <select value={year} onChange={(e) => {
-              if (e.target.value === 'custom') {
-                setShowManualYearInput(true);
-                setYear('');
-              } else {
-                setYear(e.target.value);
-              }
-            }} required>
-              <option value="">Select Year</option>
-              {uniqueYears.map((y) => (
-                <option key={y} value={y}>{y}</option>
-              ))}
-              <option value="custom">Other (Enter manually)</option>
-            </select>
-          ) : (
-            <input
-              type="number"
-              value={manualYear}
-              onChange={(e) => setManualYear(e.target.value)}
-              placeholder="Enter Year"
-              required
-              className="full-width"
-            />
-          )}
+          <input
+            type="number"
+            value={year}
+            onChange={(e) => setYear(e.target.value)}
+            placeholder="Enter Year"
+            required
+            className="full-width"
+          />
         </div>
 
         <div className="input-pair">
@@ -222,6 +206,24 @@ const RevenueSubCategory = () => {
             </div>
           );
         })}
+      </div>
+
+      <div className="grand-total">
+        <h3>Grand Total</h3>
+        <table className="grand-total-table">
+          <thead>
+            <tr>
+              <th>Total Expected Budget</th>
+              <th>Total Actual Budget</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Rs. {grandTotalExpected.toLocaleString()}</td>
+              <td>Rs. {grandTotalActual.toLocaleString()}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   );

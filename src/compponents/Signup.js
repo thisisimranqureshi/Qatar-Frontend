@@ -3,7 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import './css/Signup.css';
 
 const Signup = () => {
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    group: ''
+  });
+
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
 
@@ -25,8 +31,8 @@ const Signup = () => {
 
       if (res.ok) {
         setMessage(data.message);
-        setForm({ name: '', email: '', password: '' });
-        navigate('/login');
+        setForm({ name: '', email: '', password: '', group: '' });
+        navigate('/');
       } else {
         setMessage(data.error || 'Signup failed');
       }
@@ -38,7 +44,7 @@ const Signup = () => {
   return (
     <div className="signup-container">
       <div className="signup-box">
-        <div className="signup-left" /> {/* Logo via CSS background */}
+        <div className="signup-left" /> {/* Logo side */}
 
         <div className="signup-right">
           <form onSubmit={handleSubmit} className="signup-form">
@@ -69,6 +75,16 @@ const Signup = () => {
               name="password"
               placeholder="Password"
               value={form.password}
+              onChange={handleChange}
+              required
+              className="signup-input"
+            />
+
+            <input
+              type="text"
+              name="group"
+              placeholder="Group (e.g. Sales, IT)"
+              value={form.group}
               onChange={handleChange}
               required
               className="signup-input"

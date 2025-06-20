@@ -14,8 +14,10 @@ const ExpenseSubCategoryInput = () => {
   const [expectedBudget, setExpectedBudget] = useState('');
   const [actualBudget, setActualBudget] = useState('');
   const [entries, setEntries] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const entriesPerPage = 10;
+  const [selectedYear, setSelectedYear] = useState('');
+  const [selectedMonth, setSelectedMonth] = useState('');
+
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
   useEffect(() => {
     fetchEntries();
@@ -26,9 +28,13 @@ const ExpenseSubCategoryInput = () => {
       const res = await axios.get(
         `http://localhost:3500/api/expense/subcategories?companyId=${companyId}&categoryName=${categoryName}`
       );
+      const monthMap = {
+        Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
+        Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11,
+      };
       const sorted = res.data.sort((a, b) => {
-        const dateA = new Date(`${a.year}-${a.month}-01`);
-        const dateB = new Date(`${b.year}-${b.month}-01`);
+        const dateA = new Date(a.year, monthMap[a.month]);
+        const dateB = new Date(b.year, monthMap[b.month]);
         return dateB - dateA;
       });
       setEntries(sorted);
@@ -39,7 +45,6 @@ const ExpenseSubCategoryInput = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const payload = {
       companyId,
       categoryName,
@@ -63,7 +68,25 @@ const ExpenseSubCategoryInput = () => {
     }
   };
 
-  const paginatedEntries = entries.slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage);
+  const groupBySubcategory = (data) => {
+    const grouped = {};
+    data.forEach(entry => {
+      if (!grouped[entry.subcategory]) {
+        grouped[entry.subcategory] = [];
+      }
+      grouped[entry.subcategory].push(entry);
+    });
+    return grouped;
+  };
+
+  const uniqueYears = [...new Set(entries.map(e => e.year))];
+  const filteredEntries = entries.filter(entry => {
+    const matchYear = selectedYear ? entry.year.toString() === selectedYear : true;
+    const matchMonth = selectedMonth ? entry.month === selectedMonth : true;
+    return matchYear && matchMonth;
+  });
+
+  const groupedEntries = groupBySubcategory(filteredEntries);
 
   return (
     <div className="subcategory-form-container compact">
@@ -81,17 +104,19 @@ const ExpenseSubCategoryInput = () => {
         <div className="input-pair">
           <select value={month} onChange={(e) => setMonth(e.target.value)} required>
             <option value="">Select Month</option>
-            {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((m) => (
+            {months.map((m) => (
               <option key={m} value={m}>{m}</option>
             ))}
           </select>
 
-          <select value={year} onChange={(e) => setYear(e.target.value)} required>
-            <option value="">Select Year</option>
-            {[2023, 2024, 2025, 2026].map((y) => (
-              <option key={y} value={y}>{y}</option>
-            ))}
-          </select>
+          <input
+            type="number"
+            value={year}
+            onChange={(e) => setYear(e.target.value)}
+            placeholder="Enter Year"
+            required
+            className="full-width"
+          />
         </div>
 
         <div className="input-pair">
@@ -102,6 +127,7 @@ const ExpenseSubCategoryInput = () => {
             onChange={(e) => setExpectedBudget(e.target.value)}
             required
           />
+
           <input
             type="number"
             placeholder="Actual Budget"
@@ -114,39 +140,87 @@ const ExpenseSubCategoryInput = () => {
         <button type="submit">Save</button>
       </form>
 
-      <table className="subcategory-table">
-        <thead>
-          <tr>
-            <th>Subcategory</th>
-            <th>Month</th>
-            <th>Year</th>
-            <th>Expected</th>
-            <th>Actual</th>
-          </tr>
-        </thead>
-        <tbody>
-          {paginatedEntries.map((entry, idx) => (
-            <tr key={idx}>
-              <td>{entry.subcategory}</td>
-              <td>{entry.month}</td>
-              <td>{entry.year}</td>
-              <td>Rs. {entry.expectedBudget.toLocaleString()}</td>
-              <td>Rs. {entry.actualBudget.toLocaleString()}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      <div className="pagination">
-        {Array.from({ length: Math.ceil(entries.length / entriesPerPage) }, (_, i) => (
-          <button
-            key={i}
-            onClick={() => setCurrentPage(i + 1)}
-            className={currentPage === i + 1 ? 'active' : ''}
+      {uniqueYears.length > 0 && (
+        <div className="filter-dropdown-wrapper">
+          <select
+            className="year-filter-dropdown"
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
           >
-            {i + 1}
-          </button>
-        ))}
+            <option value="">Show All Years</option>
+            {uniqueYears.map((yr) => (
+              <option key={yr} value={yr}>{yr}</option>
+            ))}
+          </select>
+
+          <select
+            className="month-filter-dropdown"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+          >
+            <option value="">Show All Months</option>
+            {months.map((m) => (
+              <option key={m} value={m}>{m}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      <div className="subcategory-table-container">
+        {Object.keys(groupedEntries).map((subName, idx) => {
+          const subEntries = groupedEntries[subName];
+          const totalExpected = subEntries.reduce((sum, entry) => sum + entry.expectedBudget, 0);
+          const totalActual = subEntries.reduce((sum, entry) => sum + entry.actualBudget, 0);
+
+          return (
+            <div key={idx} className="subcategory-table-wrapper">
+              <h3 className="subcategory-heading">{subName}</h3>
+              <table className="subcategory-table">
+                <thead>
+                  <tr>
+                    <th>Month</th>
+                    <th>Year</th>
+                    <th>Expected</th>
+                    <th>Actual</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {subEntries.map((entry, i) => (
+                    <tr key={i}>
+                      <td>{entry.month}</td>
+                      <td>{entry.year}</td>
+                      <td>Rs. {entry.expectedBudget.toLocaleString()}</td>
+                      <td>Rs. {entry.actualBudget.toLocaleString()}</td>
+                    </tr>
+                  ))}
+                  <tr className="total-row">
+                    <td colSpan="2" style={{ fontWeight: 'bold' }}>Total</td>
+                    <td style={{ fontWeight: 'bold' }}>Rs. {totalExpected.toLocaleString()}</td>
+                    <td style={{ fontWeight: 'bold' }}>Rs. {totalActual.toLocaleString()}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="grand-total">
+        <h3>Grand Total</h3>
+        <table className="grand-total-table">
+          <thead>
+            <tr>
+              <th>Total Expected Budget</th>
+              <th>Total Actual Budget</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Rs. {filteredEntries.reduce((sum, e) => sum + e.expectedBudget, 0).toLocaleString()}</td>
+              <td>Rs. {filteredEntries.reduce((sum, e) => sum + e.actualBudget, 0).toLocaleString()}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   );

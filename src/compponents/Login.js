@@ -51,7 +51,7 @@ const Login = ({ setUserEmail, setUserName, setUserRole }) => {
   };
 
   const handleSignupClick = () => {
-    navigate('/');
+    navigate('/signup');
   };
 
   return (
