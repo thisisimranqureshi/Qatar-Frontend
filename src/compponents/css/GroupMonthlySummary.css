@@ -1,0 +1,19 @@
+.summary-table {
+    width: 100%;
+    max-width: 900px;
+    margin: 20px auto;
+    border-collapse: collapse;
+    font-family: 'Segoe UI';
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+  }
+  
+  .summary-table th, .summary-table td {
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    text-align: center;
+  }
+  
+  .summary-table th {
+    background-color: #f4f4f4;
+  }
+  

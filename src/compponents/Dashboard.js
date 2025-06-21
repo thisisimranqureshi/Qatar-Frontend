@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import ProfitLossBarChart from './charts/ProfitLossBarChart';
+import GroupMonthlySummary from './charts/GroupMonthlySummary';
+import GroupYearlySummary from './charts/GroupYearlySummary';
 import "../compponents/css/Dashboard.css";
 
 const Dashboard = () => {
@@ -12,7 +14,6 @@ const Dashboard = () => {
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [activeTab, setActiveTab] = useState({});
 
-  // ✅ Fixed: use correct localStorage key
   const userRole = localStorage.getItem("userRole");
   const userEmail = localStorage.getItem("userEmail");
 
@@ -27,72 +28,51 @@ const Dashboard = () => {
         .then(res => setManagers(res.data))
         .catch(err => console.error(err));
     } else {
-      axios.get('http://localhost:3500/companies', {
-        params: {
-          userEmail,
-          role: userRole
-        }
-      }).then(async res => {
-        const rawCompanies = res.data;
-        const detailedCompanies = await Promise.all(
-          rawCompanies.map(async (c) => {
-            const full = await axios.get(`http://localhost:3500/company/${c._id}`);
-            return full.data;
-          })
-        );
-        setCompanies(detailedCompanies);
-        setStage("companies");
-      }).catch(err => console.error("Error loading manager companies:", err));
+      axios.get('http://localhost:3500/companies', { params: { userEmail, role: userRole } })
+        .then(async res => {
+          const raw = res.data;
+          const detailed = await Promise.all(raw.map(async c => {
+            const { data } = await axios.get(`http://localhost:3500/company/${c._id}`);
+            return data;
+          }));
+          setCompanies(detailed);
+          setStage("companies");
+        })
+        .catch(err => console.error(err));
     }
   }, [userEmail, userRole]);
 
-  const handleManagerClick = async (manager) => {
+  const handleManagerClick = async manager => {
     setSelectedManager(manager);
     setCompanies([]);
     setCategoryData([]);
-
     try {
-      const res = await axios.get(`http://localhost:3500/companies`, {
-        params: {
-          userEmail: manager.email,
-          role: 'manager'
-        }
+      const res = await axios.get('http://localhost:3500/companies', {
+        params: { userEmail: manager.email, role: 'manager' }
       });
-
-      const rawCompanies = res.data;
-
-      const detailedCompanies = await Promise.all(
-        rawCompanies.map(async (c) => {
-          const full = await axios.get(`http://localhost:3500/company/${c._id}`);
-          return full.data;
-        })
-      );
-
-      setCompanies(detailedCompanies);
+      const raw = res.data;
+      const detailed = await Promise.all(raw.map(async c => {
+        const { data } = await axios.get(`http://localhost:3500/company/${c._id}`);
+        return data;
+      }));
+      setCompanies(detailed);
       setStage("companies");
     } catch (err) {
       console.error(err);
     }
   };
 
-  const handleCompanyClick = (company) => {
+  const handleCompanyClick = company => {
     setSelectedCompany(company);
-
-    const revenue = company.revenueEntries || [];
-    const expense = company.expenseEntries || [];
-
-    const categoriesSet = new Set([
-      ...revenue.map(entry => entry.categoryName),
-      ...expense.map(entry => entry.categoryName),
-    ]);
-
-    const mergedCategoryData = Array.from(categoriesSet).map(category => ({
-      categoryName: category,
-      revenueEntries: revenue.filter(e => e.categoryName === category),
-      expenseEntries: expense.filter(e => e.categoryName === category)
+    const rev = company.revenueEntries || [];
+    const exp = company.expenseEntries || [];
+    const cats = [...new Set([...rev.map(e => e.categoryName), ...exp.map(e => e.categoryName)])];
+    const merged = cats.map(cat => ({
+      categoryName: cat,
+      revenueEntries: rev.filter(e => e.categoryName === cat),
+      expenseEntries: exp.filter(e => e.categoryName === cat),
     }));
-
-    setCategoryData(mergedCategoryData);
+    setCategoryData(merged);
     setStage("categories");
   };
 
@@ -108,152 +88,138 @@ const Dashboard = () => {
     }
   };
 
-  const toggleTab = (category, tab) => {
+  const toggleTab = (category, tab) =>
     setActiveTab(prev => ({ ...prev, [category]: tab }));
+
+  const totals = {
+    expectedRevenue: 0,
+    actualRevenue: 0,
+    expectedExpense: 0,
+    actualExpense: 0,
   };
 
-  const totalExpectedRevenue = categoryData.reduce((acc, cat) =>
-    acc + cat.revenueEntries.reduce((sum, e) => sum + Number(e.expectedBudget || 0), 0), 0);
-  const totalActualRevenue = categoryData.reduce((acc, cat) =>
-    acc + cat.revenueEntries.reduce((sum, e) => sum + Number(e.actualBudget || 0), 0), 0);
-  const totalExpectedExpense = categoryData.reduce((acc, cat) =>
-    acc + cat.expenseEntries.reduce((sum, e) =>
-      sum + (e.subcategories?.reduce((s, sub) => s + Number(sub.expectedBudget || 0), 0) || 0), 0), 0);
-  const totalActualExpense = categoryData.reduce((acc, cat) =>
-    acc + cat.expenseEntries.reduce((sum, e) =>
-      sum + (e.subcategories?.reduce((s, sub) => s + Number(sub.actualBudget || 0), 0) || 0), 0), 0);
-
-  const expectedProfitLoss = totalExpectedRevenue - totalExpectedExpense;
-  const actualProfitLoss = totalActualRevenue - totalActualExpense;
+  categoryData.forEach(cat => {
+    cat.revenueEntries.forEach(e => {
+      totals.expectedRevenue += +e.expectedBudget || 0;
+      totals.actualRevenue += +e.actualBudget || 0;
+    });
+    cat.expenseEntries.forEach(e => {
+      (e.subcategories || []).forEach(s => {
+        totals.expectedExpense += +s.expectedBudget || 0;
+        totals.actualExpense += +s.actualBudget || 0;
+      });
+    });
+  });
 
   return (
     <div className="dashboard-container">
-      <h2 className="dashboard-title">{userRole === "ceo" ? "CEO Dashboard" : "Your Companies"}</h2>
+      <h2 className="dashboard-title">
+        {userRole === "ceo" ? "CEO Dashboard" : "Your Companies"}
+      </h2>
 
-      {(userRole === "ceo" && stage !== 'managers') || (userRole !== "ceo" && stage !== 'companies') ? (
+      {((userRole === "ceo" && stage !== 'managers') ||
+        (userRole !== "ceo" && stage !== 'companies')) && (
         <button className="back-button" onClick={handleBack}>Back</button>
-      ) : null}
+      )}
 
-      {/* CEO Stage: View Groups */}
       {stage === "managers" && userRole === "ceo" && (
         <div className="card-list">
-          {managers.map(manager => (
-            <div className="card" key={manager._id} onClick={() => handleManagerClick(manager)}>
-              <h4>{manager.group}</h4>
-              <p>{manager.name}</p>
+          {managers.map(m => (
+            <div className="card" key={m._id} onClick={() => handleManagerClick(m)}>
+              <h4>{m.group}</h4>
+              <p>{m.name}</p>
             </div>
           ))}
         </div>
       )}
 
-      {/* Company Cards */}
       {stage === "companies" && (
         <>
           <div className="card-list">
-            {companies.map(company => (
-              <div className="card" key={company._id} onClick={() => handleCompanyClick(company)}>
-                <h4>{company.name}</h4>
+            {companies.map(comp => (
+              <div className="card" key={comp._id} onClick={() => handleCompanyClick(comp)}>
+                <h4>{comp.name}</h4>
               </div>
             ))}
           </div>
 
           {companies.length === 0 && userRole === "ceo" && (
-            <p style={{ textAlign: 'center', marginTop: '40px' }}>👈 Click a group to view its companies.</p>
+            <p style={{ textAlign: 'center', marginTop: 40 }}>
+              👈 Click a group to view its companies.
+            </p>
           )}
 
-          <div style={{ width: '100%', maxWidth: '800px', margin: '30px auto' }}>
+          <div style={{ margin: '30px auto', maxWidth: 800 }}>
             <ProfitLossBarChart companies={companies} />
+          </div>
+
+          <div style={{ margin: '30px auto', maxWidth: 800 }}>
+            <GroupMonthlySummary companies={companies} />
+          </div>
+
+          <div style={{ margin: '30px auto', maxWidth: 800 }}>
+            <GroupYearlySummary companies={companies} />
           </div>
         </>
       )}
 
-      {/* Category View */}
       {stage === "categories" && (
         <>
           <div className="totals-box">
             <h3>Grand Totals</h3>
-            <p><strong>Total Expected Revenue:</strong> {totalExpectedRevenue}</p>
-            <p><strong>Total Actual Revenue:</strong> {totalActualRevenue}</p>
-            <p><strong>Total Expected Expense:</strong> {totalExpectedExpense}</p>
-            <p><strong>Total Actual Expense:</strong> {totalActualExpense}</p>
-            <p><strong>Profit / Loss (Expected):</strong> {expectedProfitLoss}</p>
-            <p><strong>Profit / Loss (Actual):</strong> {actualProfitLoss}</p>
+            <p><strong>Total Expected Revenue:</strong> {totals.expectedRevenue}</p>
+            <p><strong>Total Actual Revenue:</strong> {totals.actualRevenue}</p>
+            <p><strong>Total Expected Expense:</strong> {totals.expectedExpense}</p>
+            <p><strong>Total Actual Expense:</strong> {totals.actualExpense}</p>
+            <p><strong>Profit/Loss (Expected):</strong> {totals.expectedRevenue - totals.expectedExpense}</p>
+            <p><strong>Profit/Loss (Actual):</strong> {totals.actualRevenue - totals.actualExpense}</p>
           </div>
 
           <div className="category-box-wrapper">
             {categoryData.map((cat, idx) => (
               <div key={idx} className="category-combined-box">
                 <h3>{cat.categoryName}</h3>
-
                 <div className="tab-buttons">
-                  <button
-                    className={activeTab[cat.categoryName] === 'revenue' ? 'tab-active' : ''}
-                    onClick={() => toggleTab(cat.categoryName, 'revenue')}
-                  >
-                    Revenue
-                  </button>
-                  <button
-                    className={activeTab[cat.categoryName] === 'expense' ? 'tab-active' : ''}
-                    onClick={() => toggleTab(cat.categoryName, 'expense')}
-                  >
-                    Expense
-                  </button>
+                  {['revenue','expense'].map(tab => (
+                    <button
+                      key={tab}
+                      className={activeTab[cat.categoryName] === tab ? 'tab-active' : ''}
+                      onClick={() => toggleTab(cat.categoryName, tab)}
+                    >
+                      {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                    </button>
+                  ))}
                 </div>
-
-                {/* Revenue Table */}
-                {activeTab[cat.categoryName] !== 'expense' && (
+                {/* Tables */}
+                {!activeTab[cat.categoryName] || activeTab[cat.categoryName] === 'revenue' ? (
                   <div className="subtable">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Subcategory</th>
-                          <th>Month</th>
-                          <th>Year</th>
-                          <th>Expected</th>
-                          <th>Actual</th>
+                    <table><thead><tr>
+                      <th>Subcategory</th><th>Month</th><th>Year</th><th>Expected</th><th>Actual</th>
+                    </tr></thead>
+                    <tbody>
+                      {cat.revenueEntries.map((e,i) => (
+                        <tr key={i}>
+                          <td>{e.subcategory}</td><td>{e.month}</td>
+                          <td>{e.year}</td><td>{e.expectedBudget}</td><td>{e.actualBudget}</td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {cat.revenueEntries.map((entry, i) => (
-                          <tr key={i}>
-                            <td>{entry.subcategory}</td>
-                            <td>{entry.month}</td>
-                            <td>{entry.year}</td>
-                            <td>{entry.expectedBudget}</td>
-                            <td>{entry.actualBudget}</td>
-                          </tr>
-                        ))}
-                      </tbody>
+                      ))}
+                    </tbody>
                     </table>
                   </div>
-                )}
-
-                {/* Expense Table */}
-                {activeTab[cat.categoryName] === 'expense' && (
+                ) : (
                   <div className="subtable">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Subcategory</th>
-                          <th>Month</th>
-                          <th>Year</th>
-                          <th>Expected</th>
-                          <th>Actual</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {cat.expenseEntries.flatMap(e =>
-                          (e.subcategories || []).map((sub, i) => (
-                            <tr key={i}>
-                              <td>{sub.subcategory}</td>
-                              <td>{sub.month}</td>
-                              <td>{sub.year}</td>
-                              <td>{sub.expectedBudget}</td>
-                              <td>{sub.actualBudget}</td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
+                    <table><thead><tr>
+                      <th>Subcategory</th><th>Month</th><th>Year</th><th>Expected</th><th>Actual</th>
+                    </tr></thead>
+                    <tbody>
+                      {cat.expenseEntries.flatMap((e) => 
+                        (e.subcategories || []).map((s,i) => (
+                          <tr key={i}>
+                            <td>{s.subcategory}</td><td>{s.month}</td>
+                            <td>{s.year}</td><td>{s.expectedBudget}</td><td>{s.actualBudget}</td>
+                          </tr>
+                      )))}
+                    </tbody>
                     </table>
                   </div>
                 )}
