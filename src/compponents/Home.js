@@ -7,7 +7,7 @@ import './css/Home.css';
 function Home() {
   const navigate = useNavigate();
   const [companies, setCompanies] = useState([]);
-  const userName = localStorage.getItem('userName'); // get user name
+  const userName = localStorage.getItem('userName');
 
   useEffect(() => {
     const userEmail = localStorage.getItem('userEmail');
@@ -61,11 +61,7 @@ function Home() {
           companies.map((company) => (
             <div key={company._id} className="company-card">
               <div className="company-info" onClick={() => handleCompanyClick(company._id)}>
-                <img
-                  src={company.image || logos}
-                  alt={`${company.name} logo`}
-                  className="company-image"
-                />
+                {/* 🔻 Image removed to reduce load */}
                 <h3>{company.name}</h3>
               </div>
               <button className="delete-button" onClick={() => handleDeleteCompany(company._id)}>
