@@ -100,7 +100,7 @@ const Signup = () => {
               <span>Already have an account?</span>
               <button
                 type="button"
-                onClick={() => navigate('/login')}
+                onClick={() => navigate('/')}
                 className="login-link"
               >
                 Login

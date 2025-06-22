@@ -3,6 +3,7 @@ import axios from 'axios';
 import ProfitLossBarChart from './charts/ProfitLossBarChart';
 import GroupMonthlySummary from './charts/GroupMonthlySummary';
 import GroupYearlySummary from './charts/GroupYearlySummary';
+import GroupProfitLossBarChart from './charts/GroupProfitLossBarChart';
 import "../compponents/css/Dashboard.css";
 
 const Dashboard = () => {
@@ -13,6 +14,7 @@ const Dashboard = () => {
   const [selectedManager, setSelectedManager] = useState(null);
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [activeTab, setActiveTab] = useState({});
+  const [groupProfitLossData, setGroupProfitLossData] = useState([]);
 
   const userRole = localStorage.getItem("userRole");
   const userEmail = localStorage.getItem("userEmail");
@@ -25,7 +27,38 @@ const Dashboard = () => {
 
     if (userRole === "ceo") {
       axios.get('http://localhost:3500/api/users')
-        .then(res => setManagers(res.data))
+        .then(async res => {
+          const mgrs = res.data;
+          setManagers(mgrs);
+
+          // 🔄 Fetch company data for each manager and calculate group totals
+          const groupData = await Promise.all(mgrs.map(async m => {
+            const res = await axios.get('http://localhost:3500/companies', {
+              params: { userEmail: m.email, role: 'manager' }
+            });
+
+            const detailed = await Promise.all(res.data.map(async c => {
+              const { data } = await axios.get(`http://localhost:3500/company/${c._id}`);
+              return data;
+            }));
+
+            const revenue = detailed.flatMap(c => c.revenueEntries || []);
+            const expenses = detailed.flatMap(c => c.expenseEntries || []);
+            const subExpenses = expenses.flatMap(e => e.subcategories || []);
+
+            const totalRev = revenue.reduce((sum, r) => sum + (+r.actualBudget || 0), 0);
+            const totalExp = subExpenses.reduce((sum, e) => sum + (+e.actualBudget || 0), 0);
+
+            return {
+              group: m.group,
+              revenue: totalRev,
+              expense: totalExp,
+              profit: totalRev - totalExp
+            };
+          }));
+
+          setGroupProfitLossData(groupData);
+        })
         .catch(err => console.error(err));
     } else {
       axios.get('http://localhost:3500/companies', { params: { userEmail, role: userRole } })
@@ -114,7 +147,7 @@ const Dashboard = () => {
   return (
     <div className="dashboard-container">
       <h2 className="dashboard-title">
-        {userRole === "ceo" ? "CEO Dashboard" : "Your Companies"}
+        {userRole === "ceo" ? "Dashboard" : "Your Companies"}
       </h2>
 
       {((userRole === "ceo" && stage !== 'managers') ||
@@ -122,17 +155,28 @@ const Dashboard = () => {
         <button className="back-button" onClick={handleBack}>Back</button>
       )}
 
+      {/* 🔹 GROUP (CEO) STAGE */}
       {stage === "managers" && userRole === "ceo" && (
-        <div className="card-list">
-          {managers.map(m => (
-            <div className="card" key={m._id} onClick={() => handleManagerClick(m)}>
-              <h4>{m.group}</h4>
-              <p>{m.name}</p>
+        <>
+          <div className="card-list">
+            {managers.map(m => (
+              <div className="card" key={m._id} onClick={() => handleManagerClick(m)}>
+                <h4>{m.group}</h4>
+                <p>{m.name}</p>
+              </div>
+            ))}
+          </div>
+
+          {groupProfitLossData.length > 0 && (
+            <div style={{ margin: '40px auto', maxWidth: 900 }}>
+              <h3 style={{ textAlign: 'center' }}>Group-wise Profit & Loss</h3>
+              <GroupProfitLossBarChart data={groupProfitLossData} />
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
 
+      {/* 🔹 COMPANY STAGE */}
       {stage === "companies" && (
         <>
           <div className="card-list">
@@ -163,6 +207,7 @@ const Dashboard = () => {
         </>
       )}
 
+      {/* 🔹 CATEGORY STAGE */}
       {stage === "categories" && (
         <>
           <div className="totals-box">
@@ -190,6 +235,7 @@ const Dashboard = () => {
                     </button>
                   ))}
                 </div>
+
                 {/* Tables */}
                 {!activeTab[cat.categoryName] || activeTab[cat.categoryName] === 'revenue' ? (
                   <div className="subtable">

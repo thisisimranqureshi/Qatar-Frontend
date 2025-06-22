@@ -1,4 +1,3 @@
-// src/compponents/charts/ProfitLossBarChart.js
 import React from 'react';
 import {
   BarChart,
@@ -9,6 +8,7 @@ import {
   CartesianGrid,
   ResponsiveContainer,
   Legend,
+  Cell,
 } from 'recharts';
 
 const ProfitLossBarChart = ({ companies }) => {
@@ -60,7 +60,14 @@ const ProfitLossBarChart = ({ companies }) => {
           <YAxis style={{ fontSize: 12 }} />
           <Tooltip formatter={(value) => `PKR ${value.toLocaleString()}`} />
           <Legend />
-          <Bar dataKey="actualProfitLoss" fill="#00C49F" barSize={30} name="Profit / Loss" />
+          <Bar dataKey="actualProfitLoss" name="Profit / Loss" barSize={30}>
+            {data.map((entry, index) => (
+              <Cell
+                key={`cell-${index}`}
+                fill={entry.actualProfitLoss >= 0 ? '#00C49F' : '#FF4D4F'}
+              />
+            ))}
+          </Bar>
         </BarChart>
       </ResponsiveContainer>
     </div>

@@ -16,14 +16,16 @@ import TypeSelection from "./compponents/Typeselection";
 // Layout wrapper to show/hide sidebar
 const LayoutWithSidebar = ({ children }) => {
   const location = useLocation();
-  const noSidebarRoutes = ["/", "/login"];
+  const noSidebarRoutes = ["/", "/login","/signup"];
   const shouldShowSidebar = !noSidebarRoutes.includes(location.pathname);
 
   return (
     <div style={{ display: "flex" }}>
       {shouldShowSidebar && <Sidebar />}
       <div style={{ flex: 1 }}>{children}</div>
-    </div>);};
+    </div>
+  );
+};
 function App() {
   const [companies, setCompanies] = useState([]);
   const [userEmail, setUserEmail] = useState("");
@@ -37,35 +39,48 @@ function App() {
           <Route
             path="/signup"
             element={
-              <Signup setUserEmail={setUserEmail} setUserName={setUserName} />}/>
+              <Signup setUserEmail={setUserEmail} setUserName={setUserName} />
+            }
+          />
           <Route
             path="/"
             element={
               <Login
                 setUserEmail={setUserEmail}
                 setUserName={setUserName}
-                setUserRole={setUserRole}/>}/>
+                setUserRole={setUserRole}
+              />
+            }
+          />
           <Route path="/type-selection/:id" element={<TypeSelection />} />
           <Route
             path="/company/:id/revenue-subcategory"
-            element={<RevenueSubCategory />}/>
-          <Route path="/company/:id/revenue-category" element={<RevenueCategoryInput />} />
-<Route path="/company/:id/expense-category" element={<ExpenseCategoryInput />} />
-<Route
-  path="/company/:id/expense-subcategory"
-  element={<ExpenseSubCategoryInput />}/>
+            element={<RevenueSubCategory />}
+          />
+          <Route
+            path="/company/:id/revenue-category"
+            element={<RevenueCategoryInput />}
+          />
+          <Route
+            path="/company/:id/expense-category"
+            element={<ExpenseCategoryInput />}
+          />
+          <Route
+            path="/company/:id/expense-subcategory"
+            element={<ExpenseSubCategoryInput />}
+          />
           <Route path="/home" element={<Home companies={companies} />} />
           {/* ✅ Always define the route, but only load dashboard if userEmail exists */}
           <Route
-  path="/dashboard"
-  element={
-    localStorage.getItem("userEmail") ? (
-      <Dashboard />
-    ) : (
-      <p>Please login first.</p>
-    )
-  }
-/>
+            path="/dashboard"
+            element={
+              localStorage.getItem("userEmail") ? (
+                <Dashboard />
+              ) : (
+                <p>Please login first.</p>
+              )
+            }
+          />
 
           <Route
             path="/add-company"
@@ -73,7 +88,10 @@ function App() {
               <AddCompany
                 setCompanies={setCompanies}
                 userEmail={userEmail}
-                userName={userName}/>}/>
+                userName={userName}
+              />
+            }
+          />
         </Routes>
       </LayoutWithSidebar>
     </BrowserRouter>
