@@ -57,11 +57,16 @@ function App() {
           <Route path="/home" element={<Home companies={companies} />} />
           {/* ✅ Always define the route, but only load dashboard if userEmail exists */}
           <Route
-            path="/dashboard"
-            element={
-              userEmail ? (
-                <Dashboard userEmail={userEmail} role={userRole} />
-              ) : (<p>Please login first.</p>)}/>
+  path="/dashboard"
+  element={
+    localStorage.getItem("userEmail") ? (
+      <Dashboard />
+    ) : (
+      <p>Please login first.</p>
+    )
+  }
+/>
+
           <Route
             path="/add-company"
             element={

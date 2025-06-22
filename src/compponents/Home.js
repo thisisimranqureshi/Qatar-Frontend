@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import logos from '../pics/Logo.jpg';
 import './css/Home.css';
 
 function Home() {
@@ -13,21 +12,14 @@ function Home() {
     const userEmail = localStorage.getItem('userEmail');
     const role = localStorage.getItem('userRole');
 
-    if (!userEmail || !role) {
-      console.error('User not logged in or role/email missing');
-      return;
-    }
+    if (!userEmail || !role) return;
 
     axios
       .get('http://localhost:3500/companies', {
         params: { userEmail, role },
       })
-      .then((res) => {
-        setCompanies(res.data);
-      })
-      .catch((err) => {
-        console.error('Error fetching companies:', err);
-      });
+      .then((res) => setCompanies(res.data))
+      .catch((err) => console.error('Error fetching companies:', err));
   }, []);
 
   const handleCompanyClick = (companyId) => {
@@ -35,11 +27,11 @@ function Home() {
   };
 
   const handleDeleteCompany = async (companyId) => {
-    if (!window.confirm('Are you sure you want to delete this company?')) return;
+    if (!window.confirm('Delete this company?')) return;
 
     try {
       await axios.delete(`http://localhost:3500/companies/${companyId}`);
-      setCompanies(companies.filter((company) => company._id !== companyId));
+      setCompanies(companies.filter((c) => c._id !== companyId));
     } catch (err) {
       console.error('Error deleting company:', err);
       alert('Failed to delete the company.');
@@ -47,22 +39,25 @@ function Home() {
   };
 
   return (
-    <div className="home-wrapper">
-      <header className="home-header">
-        <img src={logos} alt="Company Logo" className="logo" />
-        <h1>Company Management Portal</h1>
-        {userName && <p className="welcome-text">Welcome, {userName} 👋</p>}
-      </header>
+    <div className="home-container">
+      <div className="home-top-bar">
+        <h2>Companies</h2>
+        <button onClick={() => navigate('/add-company')} className="add-button">
+          + Add Company
+        </button>
+      </div>
+
+      {userName && <p className="user-tag">Logged in as: <strong>{userName}</strong></p>}
 
       <div className="company-grid">
         {companies.length === 0 ? (
-          <p className="empty-message">No companies available.</p>
+          <p className="empty-message">No companies found.</p>
         ) : (
           companies.map((company) => (
             <div key={company._id} className="company-card">
               <div className="company-info" onClick={() => handleCompanyClick(company._id)}>
-                {/* 🔻 Image removed to reduce load */}
                 <h3>{company.name}</h3>
+                <p>{company.location}</p>
               </div>
               <button className="delete-button" onClick={() => handleDeleteCompany(company._id)}>
                 Delete
@@ -71,10 +66,6 @@ function Home() {
           ))
         )}
       </div>
-
-      <button className="add-button" onClick={() => navigate('/add-company')}>
-        + Add Company
-      </button>
     </div>
   );
 }
