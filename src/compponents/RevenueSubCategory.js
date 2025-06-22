@@ -32,12 +32,12 @@ const RevenueSubCategory = () => {
         Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
         Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11,
       };
-      const sortedData = res.data.sort((a, b) => {
+      const sorted = res.data.sort((a, b) => {
         const dateA = new Date(a.year, monthMap[a.month]);
         const dateB = new Date(b.year, monthMap[b.month]);
         return dateB - dateA;
       });
-      setEntries(sortedData);
+      setEntries(sorted);
     } catch (err) {
       console.error("Failed to fetch entries:", err);
     }
@@ -45,7 +45,6 @@ const RevenueSubCategory = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const payload = {
       companyId,
       categoryName,
@@ -70,14 +69,14 @@ const RevenueSubCategory = () => {
   };
 
   const groupBySubcategory = (data) => {
-    const groups = {};
+    const grouped = {};
     data.forEach(entry => {
-      if (!groups[entry.subcategory]) {
-        groups[entry.subcategory] = [];
+      if (!grouped[entry.subcategory]) {
+        grouped[entry.subcategory] = [];
       }
-      groups[entry.subcategory].push(entry);
+      grouped[entry.subcategory].push(entry);
     });
-    return groups;
+    return grouped;
   };
 
   const uniqueYears = [...new Set(entries.map(e => e.year))];
@@ -86,43 +85,38 @@ const RevenueSubCategory = () => {
     const matchMonth = selectedMonth ? entry.month === selectedMonth : true;
     return matchYear && matchMonth;
   });
+
   const groupedEntries = groupBySubcategory(filteredEntries);
 
-  const grandTotalExpected = filteredEntries.reduce((sum, e) => sum + e.expectedBudget, 0);
-  const grandTotalActual = filteredEntries.reduce((sum, e) => sum + e.actualBudget, 0);
-
   return (
-    <div className="subcategory-form-container compact">
+    <div className="revenue-subcategory-form-container">
       <h2>Add Revenue Subcategory</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          className="full-width"
-          value={subcategory}
-          onChange={(e) => setSubcategory(e.target.value)}
-          placeholder="Subcategory Name"
-          required
-        />
 
-        <div className="input-pair">
+      <form onSubmit={handleSubmit}>
+        <div className="revenue-input-trio">
+          <input
+            type="text"
+            value={subcategory}
+            onChange={(e) => setSubcategory(e.target.value)}
+            placeholder="Subcategory Name"
+            required
+          />
           <select value={month} onChange={(e) => setMonth(e.target.value)} required>
             <option value="">Select Month</option>
             {months.map((m) => (
               <option key={m} value={m}>{m}</option>
             ))}
           </select>
-
           <input
             type="number"
             value={year}
             onChange={(e) => setYear(e.target.value)}
             placeholder="Enter Year"
             required
-            className="full-width"
           />
         </div>
 
-        <div className="input-pair">
+        <div className="revenue-input-trio">
           <input
             type="number"
             placeholder="Expected Budget"
@@ -130,7 +124,6 @@ const RevenueSubCategory = () => {
             onChange={(e) => setExpectedBudget(e.target.value)}
             required
           />
-
           <input
             type="number"
             placeholder="Actual Budget"
@@ -138,15 +131,14 @@ const RevenueSubCategory = () => {
             onChange={(e) => setActualBudget(e.target.value)}
             required
           />
+          <button type="submit">Save</button>
         </div>
-
-        <button type="submit">Save</button>
       </form>
 
       {uniqueYears.length > 0 && (
-        <div className="filter-dropdown-wrapper">
+        <div className="revenue-filter-dropdown-wrapper">
           <select
-            className="year-filter-dropdown"
+            className="revenue-year-filter-dropdown"
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value)}
           >
@@ -157,7 +149,7 @@ const RevenueSubCategory = () => {
           </select>
 
           <select
-            className="month-filter-dropdown"
+            className="revenue-month-filter-dropdown"
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
           >
@@ -168,49 +160,65 @@ const RevenueSubCategory = () => {
           </select>
         </div>
       )}
+<div className="revenue-subcategory-table-container">
+  {
+    Object.entries(groupedEntries).reduce((rows, [name, subEntries], idx, arr) => {
+      if (idx % 2 === 0) {
+        const second = arr[idx + 1];
 
-      <div className="subcategory-table-container">
-        {Object.keys(groupedEntries).map((subName, idx) => {
-          const subEntries = groupedEntries[subName];
-          const totalExpected = subEntries.reduce((sum, entry) => sum + entry.expectedBudget, 0);
-          const totalActual = subEntries.reduce((sum, entry) => sum + entry.actualBudget, 0);
+        rows.push(
+          <div key={idx} className="revenue-subcategory-row">
+            {[
+              [name, subEntries],
+              ...(second ? [second] : [])
+            ].map(([subName, entries], i) => {
+              const totalExpected = entries.reduce((sum, entry) => sum + entry.expectedBudget, 0);
+              const totalActual = entries.reduce((sum, entry) => sum + entry.actualBudget, 0);
 
-          return (
-            <div key={idx} className="subcategory-table-wrapper">
-              <h3 className="subcategory-heading">{subName}</h3>
-              <table className="subcategory-table">
-                <thead>
-                  <tr>
-                    <th>Month</th>
-                    <th>Year</th>
-                    <th>Expected</th>
-                    <th>Actual</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {subEntries.map((entry, i) => (
-                    <tr key={i}>
-                      <td>{entry.month}</td>
-                      <td>{entry.year}</td>
-                      <td>Rs. {entry.expectedBudget.toLocaleString()}</td>
-                      <td>Rs. {entry.actualBudget.toLocaleString()}</td>
-                    </tr>
-                  ))}
-                  <tr className="total-row">
-                    <td colSpan="2" style={{ fontWeight: 'bold' }}>Total</td>
-                    <td style={{ fontWeight: 'bold' }}>Rs. {totalExpected.toLocaleString()}</td>
-                    <td style={{ fontWeight: 'bold' }}>Rs. {totalActual.toLocaleString()}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          );
-        })}
-      </div>
+              return (
+                <div key={i} className="revenue-subcategory-table-wrapper">
+                  <h3 className="revenue-subcategory-heading">{subName}</h3>
+                  <table className="revenue-subcategory-table">
+                    <thead>
+                      <tr>
+                        <th>Month</th>
+                        <th>Year</th>
+                        <th>Expected</th>
+                        <th>Actual</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {entries.map((entry, j) => (
+                        <tr key={j}>
+                          <td>{entry.month}</td>
+                          <td>{entry.year}</td>
+                          <td>Rs. {entry.expectedBudget.toLocaleString()}</td>
+                          <td>Rs. {entry.actualBudget.toLocaleString()}</td>
+                        </tr>
+                      ))}
+                      <tr className="revenue-total-row">
+                        <td colSpan="2">Total</td>
+                        <td>Rs. {totalExpected.toLocaleString()}</td>
+                        <td>Rs. {totalActual.toLocaleString()}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              );
+            })}
+          </div>
+        );
+      }
+      return rows;
+    }, [])
+  }
+</div>
 
-      <div className="grand-total">
+
+
+      <div className="revenue-grand-total">
         <h3>Grand Total</h3>
-        <table className="grand-total-table">
+        <table className="revenue-grand-total-table">
           <thead>
             <tr>
               <th>Total Expected Budget</th>
@@ -219,8 +227,8 @@ const RevenueSubCategory = () => {
           </thead>
           <tbody>
             <tr>
-              <td>Rs. {grandTotalExpected.toLocaleString()}</td>
-              <td>Rs. {grandTotalActual.toLocaleString()}</td>
+              <td>Rs. {filteredEntries.reduce((sum, e) => sum + e.expectedBudget, 0).toLocaleString()}</td>
+              <td>Rs. {filteredEntries.reduce((sum, e) => sum + e.actualBudget, 0).toLocaleString()}</td>
             </tr>
           </tbody>
         </table>

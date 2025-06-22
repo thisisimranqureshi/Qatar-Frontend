@@ -33,7 +33,7 @@ const Login = ({ setUserEmail, setUserName, setUserRole }) => {
           setUserName(data.name);
           setUserRole(data.role); // ✅ This is important!
           setMessage(data.message || 'Login successful');
-          navigate('/dashboard'); // you can also use `/dashboard` here directly if you prefer
+          navigate('/home'); // you can also use `/dashboard` here directly if you prefer
         }
 
       } else {

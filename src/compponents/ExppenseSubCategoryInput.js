@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import axios from 'axios';
-import "../compponents/css/ExpenseCategory.css";
+import "../compponents/css/ExpenseSubCategory.css";
 
 const ExpenseSubCategoryInput = () => {
   const { id: companyId } = useParams();
@@ -89,19 +89,19 @@ const ExpenseSubCategoryInput = () => {
   const groupedEntries = groupBySubcategory(filteredEntries);
 
   return (
-    <div className="subcategory-form-container compact">
+    <div className="expense-subcategory-form-container">
       <h2>Add Expense Subcategory</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          className="full-width"
-          value={subcategory}
-          onChange={(e) => setSubcategory(e.target.value)}
-          placeholder="Subcategory Name"
-          required
-        />
 
-        <div className="input-pair">
+      <form onSubmit={handleSubmit}>
+        <div className="input-trio">
+          <input
+            type="text"
+            value={subcategory}
+            onChange={(e) => setSubcategory(e.target.value)}
+            placeholder="Subcategory Name"
+            required
+          />
+
           <select value={month} onChange={(e) => setMonth(e.target.value)} required>
             <option value="">Select Month</option>
             {months.map((m) => (
@@ -115,11 +115,10 @@ const ExpenseSubCategoryInput = () => {
             onChange={(e) => setYear(e.target.value)}
             placeholder="Enter Year"
             required
-            className="full-width"
           />
         </div>
 
-        <div className="input-pair">
+        <div className="input-trio">
           <input
             type="number"
             placeholder="Expected Budget"
@@ -135,9 +134,9 @@ const ExpenseSubCategoryInput = () => {
             onChange={(e) => setActualBudget(e.target.value)}
             required
           />
-        </div>
 
-        <button type="submit">Save</button>
+          <button type="submit">Save</button>
+        </div>
       </form>
 
       {uniqueYears.length > 0 && (
@@ -165,45 +164,47 @@ const ExpenseSubCategoryInput = () => {
           </select>
         </div>
       )}
+<div className="subcategory-table-container">
+  <div className="expense-subcategory-row">
+    {Object.keys(groupedEntries).map((subName, idx) => {
+      const subEntries = groupedEntries[subName];
+      const totalExpected = subEntries.reduce((sum, entry) => sum + entry.expectedBudget, 0);
+      const totalActual = subEntries.reduce((sum, entry) => sum + entry.actualBudget, 0);
 
-      <div className="subcategory-table-container">
-        {Object.keys(groupedEntries).map((subName, idx) => {
-          const subEntries = groupedEntries[subName];
-          const totalExpected = subEntries.reduce((sum, entry) => sum + entry.expectedBudget, 0);
-          const totalActual = subEntries.reduce((sum, entry) => sum + entry.actualBudget, 0);
+      return (
+        <div key={idx} className="subcategory-table-wrapper">
+          <h3 className="subcategory-heading">{subName}</h3>
+          <table className="subcategory-table">
+            <thead>
+              <tr>
+                <th>Month</th>
+                <th>Year</th>
+                <th>Expected</th>
+                <th>Actual</th>
+              </tr>
+            </thead>
+            <tbody>
+              {subEntries.map((entry, i) => (
+                <tr key={i}>
+                  <td>{entry.month}</td>
+                  <td>{entry.year}</td>
+                  <td>Rs. {entry.expectedBudget.toLocaleString()}</td>
+                  <td>Rs. {entry.actualBudget.toLocaleString()}</td>
+                </tr>
+              ))}
+              <tr className="total-row">
+                <td colSpan="2">Total</td>
+                <td>Rs. {totalExpected.toLocaleString()}</td>
+                <td>Rs. {totalActual.toLocaleString()}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      );
+    })}
+  </div>
+</div>
 
-          return (
-            <div key={idx} className="subcategory-table-wrapper">
-              <h3 className="subcategory-heading">{subName}</h3>
-              <table className="subcategory-table">
-                <thead>
-                  <tr>
-                    <th>Month</th>
-                    <th>Year</th>
-                    <th>Expected</th>
-                    <th>Actual</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {subEntries.map((entry, i) => (
-                    <tr key={i}>
-                      <td>{entry.month}</td>
-                      <td>{entry.year}</td>
-                      <td>Rs. {entry.expectedBudget.toLocaleString()}</td>
-                      <td>Rs. {entry.actualBudget.toLocaleString()}</td>
-                    </tr>
-                  ))}
-                  <tr className="total-row">
-                    <td colSpan="2" style={{ fontWeight: 'bold' }}>Total</td>
-                    <td style={{ fontWeight: 'bold' }}>Rs. {totalExpected.toLocaleString()}</td>
-                    <td style={{ fontWeight: 'bold' }}>Rs. {totalActual.toLocaleString()}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          );
-        })}
-      </div>
 
       <div className="grand-total">
         <h3>Grand Total</h3>
