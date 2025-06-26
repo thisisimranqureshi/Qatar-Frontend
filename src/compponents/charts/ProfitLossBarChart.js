@@ -13,19 +13,9 @@ import {
 
 const ProfitLossBarChart = ({ companies }) => {
   const data = companies.map(company => {
-    const expectedRevenue = company.revenueEntries?.reduce(
-      (acc, e) => acc + Number(e.expectedBudget || 0), 0
-    ) || 0;
-
     const actualRevenue = company.revenueEntries?.reduce(
       (acc, e) => acc + Number(e.actualBudget || 0), 0
     ) || 0;
-
-    const expectedExpense = company.expenseEntries?.reduce((acc, e) => {
-      return acc + (e.subcategories?.reduce(
-        (sum, sub) => sum + Number(sub.expectedBudget || 0), 0
-      ) || 0);
-    }, 0) || 0;
 
     const actualExpense = company.expenseEntries?.reduce((acc, e) => {
       return acc + (e.subcategories?.reduce(
@@ -40,27 +30,27 @@ const ProfitLossBarChart = ({ companies }) => {
   });
 
   return (
-    <div style={{ width: '100%', height: 300, marginTop: 20 }}>
-      <h3 style={{ textAlign: 'center' }}>Company Profit/Loss</h3>
+    <div style={{ width: '100%', maxWidth: 400, height: 240, margin: '20px auto' }}>
+      <h4 style={{ textAlign: 'center', marginBottom: 10 }}>Profit/Loss</h4>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={data}
-          margin={{ top: 20, right: 20, left: 10, bottom: 60 }}
-          barCategoryGap={20}
+          margin={{ top: 10, right: 10, left: 0, bottom: 40 }}
+          barCategoryGap={10}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
             dataKey="name"
-            angle={-30}
+            angle={-20}
             textAnchor="end"
             interval={0}
-            height={60}
-            style={{ fontSize: 12 }}
+            height={40}
+            style={{ fontSize: 10 }}
           />
-          <YAxis style={{ fontSize: 12 }} />
+          <YAxis style={{ fontSize: 10 }} />
           <Tooltip formatter={(value) => `PKR ${value.toLocaleString()}`} />
-          <Legend />
-          <Bar dataKey="actualProfitLoss" name="Profit / Loss" barSize={30}>
+          <Legend verticalAlign="top" height={20} />
+          <Bar dataKey="actualProfitLoss" name="Profit / Loss" barSize={20}>
             {data.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}

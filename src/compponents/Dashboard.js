@@ -193,17 +193,21 @@ const Dashboard = () => {
             </p>
           )}
 
-          <div style={{ margin: '30px auto', maxWidth: 800 }}>
-            <ProfitLossBarChart companies={companies} />
-          </div>
+<div className="dashboard-chart-row">
+  <div className="dashboard-chart-box">
+    <ProfitLossBarChart companies={companies} />
+  </div>
+  <div className="dashboard-chart-box">
+    <GroupMonthlySummary companies={companies} />
+  </div>
+</div>
 
-          <div style={{ margin: '30px auto', maxWidth: 800 }}>
-            <GroupMonthlySummary companies={companies} />
-          </div>
+<div className="dashboard-chart-row">
+  <div className="dashboard-chart-box">
+    <GroupYearlySummary companies={companies} />
+  </div>
+</div>
 
-          <div style={{ margin: '30px auto', maxWidth: 800 }}>
-            <GroupYearlySummary companies={companies} />
-          </div>
         </>
       )}
 

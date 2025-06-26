@@ -171,6 +171,25 @@
   background: #00C49F;
   border-radius: 10px;
 }
+.dashboard-chart-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin: 20px auto;
+  max-width: 1200px;
+}
+
+.dashboard-chart-box {
+  flex: 1;
+  min-width: 450px;
+  height: 260px;
+  background: #fff;
+  padding: 10px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
 
 /* RESPONSIVE */
 @media screen and (max-width: 768px) {

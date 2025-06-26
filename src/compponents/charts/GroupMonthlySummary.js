@@ -43,27 +43,28 @@ const GroupMonthlySummary = ({ companies }) => {
   );
 
   return (
-    <div style={{ width: '100%', height: 300, marginTop: 20 }}>
+    <div style={{ width: '100%', height: 240, marginTop: 52 }}>
+      <h4 style={{ textAlign: 'center', fontSize: 15, marginBottom: 5 }}>Monthly Revenue vs Expense</h4>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={data}
-          margin={{ top: 20, right: 20, left: 10, bottom: 60 }}
-          barCategoryGap={8}
+          margin={{ top: 10, right: 10, left: 5, bottom: 45 }}
+          barCategoryGap={6}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
             dataKey="month"
-            angle={-35}
+            angle={-30}
             textAnchor="end"
             interval={0}
-            height={60}
-            style={{ fontSize: 11 }}
+            height={50}
+            style={{ fontSize: 10 }}
           />
-          <YAxis style={{ fontSize: 12 }} />
+          <YAxis style={{ fontSize: 10 }} />
           <Tooltip />
-          <Legend />
-          <Bar dataKey="totalRevenue" fill="#00C49F" name="Revenue" barSize={18} />
-          <Bar dataKey="totalExpense" fill="#FF6F61" name="Expense" barSize={18} />
+          <Legend wrapperStyle={{ fontSize: 10 }} />
+          <Bar dataKey="totalRevenue" fill="#00C49F" name="Revenue" barSize={12} />
+          <Bar dataKey="totalExpense" fill="#FF6F61" name="Expense" barSize={12} />
         </BarChart>
       </ResponsiveContainer>
     </div>
