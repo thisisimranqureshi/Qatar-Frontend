@@ -2,7 +2,6 @@
   position: fixed;
   top: 0;
   left: 0;
-  width: 155px;
   height: 100vh;
   background-color: #1f2937;
   color: white;
@@ -13,7 +12,7 @@
 }
 
 .sidebar-fixed.collapsed {
-  width: 60px;
+  width: 40px;
 }
 
 .sidebar-header {
@@ -56,5 +55,5 @@
 
 .main-content {
   transition: margin-left 0.3s ease;
-  margin-left: 220px; /* Default margin when sidebar is open */
+
 }

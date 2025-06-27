@@ -11,7 +11,7 @@ const Accounts = () => {
     email: "",
     password: "",
     group: "",
-    role: "manager",
+    role: "",
   });
 
   const fetchUsers = async () => {
@@ -49,7 +49,7 @@ const Accounts = () => {
       email: "",
       password: "",
       group: "",
-      role: "manager",
+      role: "",
     });
     setShowPopup(true);
   };
@@ -136,6 +136,7 @@ const Accounts = () => {
             >
               <option value="manager">manager</option>
               <option value="ceo">ceo</option>
+              <option value="admin">admin</option>
             </select>
 
             <button className="update-btn" onClick={handleSubmit}>

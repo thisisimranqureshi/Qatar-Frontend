@@ -25,30 +25,30 @@ const Dashboard = () => {
       return;
     }
 
-    if (userRole === "ceo") {
+    if (userRole === "ceo" || userRole === "admin") {
       axios.get('http://localhost:3500/api/users')
         .then(async res => {
-          const mgrs = res.data;
+          // 🔥 Filter only managers
+          const mgrs = res.data.filter(u => u.role === 'manager');
           setManagers(mgrs);
-
-          // 🔄 Fetch company data for each manager and calculate group totals
+    
           const groupData = await Promise.all(mgrs.map(async m => {
             const res = await axios.get('http://localhost:3500/companies', {
               params: { userEmail: m.email, role: 'manager' }
             });
-
+    
             const detailed = await Promise.all(res.data.map(async c => {
               const { data } = await axios.get(`http://localhost:3500/company/${c._id}`);
               return data;
             }));
-
+    
             const revenue = detailed.flatMap(c => c.revenueEntries || []);
             const expenses = detailed.flatMap(c => c.expenseEntries || []);
             const subExpenses = expenses.flatMap(e => e.subcategories || []);
-
+    
             const totalRev = revenue.reduce((sum, r) => sum + (+r.actualBudget || 0), 0);
             const totalExp = subExpenses.reduce((sum, e) => sum + (+e.actualBudget || 0), 0);
-
+    
             return {
               group: m.group,
               revenue: totalRev,
@@ -56,7 +56,7 @@ const Dashboard = () => {
               profit: totalRev - totalExp
             };
           }));
-
+    
           setGroupProfitLossData(groupData);
         })
         .catch(err => console.error(err));
@@ -114,7 +114,7 @@ const Dashboard = () => {
       setCategoryData([]);
       setSelectedCompany(null);
       setStage("companies");
-    } else if (stage === "companies" && userRole === "ceo") {
+    } else if (stage === "companies" && (userRole === "ceo" || userRole === "admin")) {
       setCompanies([]);
       setSelectedManager(null);
       setStage("managers");
@@ -147,16 +147,16 @@ const Dashboard = () => {
   return (
     <div className="dashboard-container">
       <h2 className="dashboard-title">
-        {userRole === "ceo" ? "Dashboard" : "Your Companies"}
+        {(userRole === "ceo" || userRole === "admin") ? "Dashboard" : "Your Companies"}
       </h2>
 
-      {((userRole === "ceo" && stage !== 'managers') ||
-        (userRole !== "ceo" && stage !== 'companies')) && (
+      {((userRole === "ceo" || userRole === "admin") && stage !== 'managers') ||
+        (userRole !== "ceo" && userRole !== "admin" && stage !== 'companies') ? (
         <button className="back-button" onClick={handleBack}>Back</button>
-      )}
+      ) : null}
 
-      {/* 🔹 GROUP (CEO) STAGE */}
-      {stage === "managers" && userRole === "ceo" && (
+      {/* 🔹 GROUP (CEO/Admin) STAGE */}
+      {stage === "managers" && (userRole === "ceo" || userRole === "admin") && (
         <>
           <div className="card-list">
             {managers.map(m => (
@@ -187,27 +187,26 @@ const Dashboard = () => {
             ))}
           </div>
 
-          {companies.length === 0 && userRole === "ceo" && (
+          {companies.length === 0 && (userRole === "ceo" || userRole === "admin") && (
             <p style={{ textAlign: 'center', marginTop: 40 }}>
               👈 Click a group to view its companies.
             </p>
           )}
 
-<div className="dashboard-chart-row">
-  <div className="dashboard-chart-box">
-    <ProfitLossBarChart companies={companies} />
-  </div>
-  <div className="dashboard-chart-box">
-    <GroupMonthlySummary companies={companies} />
-  </div>
-</div>
+          <div className="dashboard-chart-row">
+            <div className="dashboard-chart-box">
+              <ProfitLossBarChart companies={companies} />
+            </div>
+            <div className="dashboard-chart-box">
+              <GroupMonthlySummary companies={companies} />
+            </div>
+          </div>
 
-<div className="dashboard-chart-row">
-  <div className="dashboard-chart-box">
-    <GroupYearlySummary companies={companies} />
-  </div>
-</div>
-
+          <div className="dashboard-chart-row">
+            <div className="dashboard-chart-box">
+              <GroupYearlySummary companies={companies} />
+            </div>
+          </div>
         </>
       )}
 
@@ -262,8 +261,8 @@ const Dashboard = () => {
                       <th>Subcategory</th><th>Month</th><th>Year</th><th>Expected</th><th>Actual</th>
                     </tr></thead>
                     <tbody>
-                      {cat.expenseEntries.flatMap((e) => 
-                        (e.subcategories || []).map((s,i) => (
+                      {cat.expenseEntries.flatMap((e) =>
+                        (e.subcategories || []).map((s, i) => (
                           <tr key={i}>
                             <td>{s.subcategory}</td><td>{s.month}</td>
                             <td>{s.year}</td><td>{s.expectedBudget}</td><td>{s.actualBudget}</td>

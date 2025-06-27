@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FiMenu, FiHome, FiPlus, FiLogOut } from 'react-icons/fi';
 import { FaUser } from "react-icons/fa";
@@ -8,13 +8,16 @@ import './css/Sidebar.css';
 const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed);
-
+  // ✅ Always apply correct margin on initial load and when toggled
+  useEffect(() => {
     const root = document.querySelector('.main-content');
     if (root) {
-      root.style.marginLeft = isCollapsed ? '220px' : '60px';
+      root.style.marginLeft = isCollapsed ? '60px' : '220px';
     }
+  }, [isCollapsed]);
+
+  const toggleSidebar = () => {
+    setIsCollapsed(!isCollapsed);
   };
 
   return (
@@ -30,11 +33,11 @@ const Sidebar = () => {
           <RxDashboard size={20} />
           {!isCollapsed && "Dashboard"}
         </Link>
-        {localStorage.getItem("userRole") === "ceo" && (
-        <Link to="/users" className="sidebar-link">
-          <FaUser  size={20} />
-          {!isCollapsed && "users"}
-        </Link>
+        {["ceo", "admin"].includes(localStorage.getItem("userRole")) && (
+          <Link to="/users" className="sidebar-link">
+            <FaUser size={20} />
+            {!isCollapsed && "users"}
+          </Link>
         )}
         <Link to="/home" className="sidebar-link">
           <FiHome size={20} />
