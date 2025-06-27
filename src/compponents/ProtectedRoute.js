@@ -1,15 +1,12 @@
+// components/PrivateRoute.js
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 
 const ProtectedRoute = ({ children }) => {
-  const email = localStorage.getItem("userEmail");
-  const role = localStorage.getItem("userRole");
+  const userEmail = localStorage.getItem('userEmail');
+  const userRole = localStorage.getItem('userRole');
 
-  if (!email || !role) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return children;
+  return userEmail && userRole ? children : <Navigate to="/" replace />;
 };
 
 export default ProtectedRoute;

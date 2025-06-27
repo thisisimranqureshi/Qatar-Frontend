@@ -30,12 +30,12 @@
 }
 
 .card {
-  background: linear-gradient(135deg, #00C49F, #00A98F);
-  color: white;
+  background: rgb(215, 210, 210);
+  color: black;
   border: none;
   border-radius: 16px;
   padding: 30px 20px;
-  box-shadow: 0 8px 20px rgba(0, 196, 159, 0.15);
+  box-shadow: 0 8px 20px rgba(16, 16, 16, 0.15);
   font-size: 18px;
   font-weight: 600;
   text-align: center;
@@ -45,22 +45,10 @@
   overflow: hidden;
 }
 
-.card::before {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.12), transparent 70%);
-  transform: rotate(25deg);
-  transition: opacity 0.3s ease;
-  opacity: 0;
-}
 
 .card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 12px 24px rgba(0, 196, 159, 0.25);
+  box-shadow: 0 12px 24px rgba(7, 7, 7, 0.25);
 }
 
 .card:hover::before {

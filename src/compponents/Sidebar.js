@@ -19,6 +19,12 @@ const Sidebar = () => {
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
   };
+  const handleLogout = () => {
+    localStorage.removeItem("userEmail");
+    localStorage.removeItem("userRole");
+    window.location.href = "/";
+  };
+  
 
   return (
     <div className={`sidebar-fixed ${isCollapsed ? 'collapsed' : ''}`}>
@@ -47,10 +53,15 @@ const Sidebar = () => {
           <FiPlus size={20} />
           {!isCollapsed && "Add Company"}
         </Link>
-        <Link to="/" className="sidebar-link">
-          <FiLogOut size={20} />
-          {!isCollapsed && "Logout"}
-        </Link>
+        <Link
+  to="#"
+  className="sidebar-link"
+  onClick={handleLogout}
+>
+  <FiLogOut size={20} />
+  {!isCollapsed && "Logout"}
+</Link>
+
       </nav>
     </div>
   );

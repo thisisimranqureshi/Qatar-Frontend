@@ -1,4 +1,6 @@
 import "./App.css";
+import ProtectedRoute from "./compponents/ProtectedRoute";
+import AdminRoute from "./compponents/AdminRoute";
 import Login from "./compponents/Login";
 import Home from "./compponents/Home";
 import Signup from "./compponents/Signup";
@@ -41,20 +43,20 @@ function App() {
         <Routes>
           <Route path="/signup" element={<Signup setUserEmail={setUserEmail} setUserName={setUserName} />} />
           <Route path="/" element={<Login setUserEmail={setUserEmail} setUserName={setUserName} setUserRole={setUserRole} />} />
-          <Route path="/type-selection/:id" element={<TypeSelection />} />
-          <Route path="/company/:id/revenue-subcategory" element={<RevenueSubCategory />} />
-          <Route path="/company/:id/revenue-category" element={<RevenueCategoryInput />} />
-          <Route path="/company/:id/expense-category" element={<ExpenseCategoryInput />} />
-          <Route path="/company/:id/expense-subcategory" element={<ExpenseSubCategoryInput />} />
-          <Route path="/users" element={<Accounts/>}/>
-          <Route path="/home" element={<Home companies={companies} />} />
+          <Route path="/type-selection/:id" element={<ProtectedRoute><TypeSelection /></ProtectedRoute>} />
+          <Route path="/company/:id/revenue-subcategory" element={<ProtectedRoute><RevenueSubCategory /></ProtectedRoute>} />
+          <Route path="/company/:id/revenue-category" element={<ProtectedRoute><RevenueCategoryInput /></ProtectedRoute>} />
+          <Route path="/company/:id/expense-category" element={<ProtectedRoute><ExpenseCategoryInput /></ProtectedRoute>} />
+          <Route path="/company/:id/expense-subcategory" element={<ProtectedRoute><ExpenseSubCategoryInput /></ProtectedRoute>} />
+          <Route path="/users" element={<ProtectedRoute><AdminRoute><Accounts/></AdminRoute></ProtectedRoute>}/>
+          <Route path="/home" element={<ProtectedRoute><Home companies={companies} /></ProtectedRoute>} />
           <Route
             path="/dashboard"
-            element={localStorage.getItem("userEmail") ? <Dashboard /> : <p>Please login first.</p>}
+            element={<ProtectedRoute><Dashboard /></ProtectedRoute>}
           />
           <Route
             path="/add-company"
-            element={<AddCompany setCompanies={setCompanies} userEmail={userEmail} userName={userName} />}
+            element={<ProtectedRoute><AddCompany setCompanies={setCompanies} userEmail={userEmail} userName={userName} /></ProtectedRoute>}
           />
         </Routes>
       </LayoutWithSidebar>
