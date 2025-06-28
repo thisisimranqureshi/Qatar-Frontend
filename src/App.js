@@ -5,6 +5,7 @@ import Login from "./compponents/Login";
 import Home from "./compponents/Home";
 import Signup from "./compponents/Signup";
 import AddCompany from "./compponents/AddCompany";
+import ManagerRoute from "./compponents/ManagerRoute";
 import RevenueCategoryInput from "./compponents/RevenueCategoryInput";
 import Dashboard from "./compponents/Dashboard";
 import Sidebar from "./compponents/Sidebar";
@@ -56,7 +57,7 @@ function App() {
           />
           <Route
             path="/add-company"
-            element={<ProtectedRoute><AddCompany setCompanies={setCompanies} userEmail={userEmail} userName={userName} /></ProtectedRoute>}
+            element={<ProtectedRoute><ManagerRoute><AddCompany setCompanies={setCompanies} userEmail={userEmail} userName={userName} /></ManagerRoute></ProtectedRoute>}
           />
         </Routes>
       </LayoutWithSidebar>

@@ -42,9 +42,6 @@ function Home() {
     <div className="home-container">
       <div className="home-top-bar">
         <h2>Companies</h2>
-        <button onClick={() => navigate('/add-company')} className="add-button">
-          + Add Company
-        </button>
       </div>
 
       {userName && <p className="user-tag">Logged in as: <strong>{userName}</strong></p>}

@@ -39,7 +39,7 @@ const Sidebar = () => {
           <RxDashboard size={20} />
           {!isCollapsed && "Dashboard"}
         </Link>
-        {["ceo", "admin"].includes(localStorage.getItem("userRole")) && (
+        {["admin"].includes(localStorage.getItem("userRole")) && (
           <Link to="/users" className="sidebar-link">
             <FaUser size={20} />
             {!isCollapsed && "users"}
@@ -49,10 +49,13 @@ const Sidebar = () => {
           <FiHome size={20} />
           {!isCollapsed && "Home"}
         </Link>
-        <Link to="/add-company" className="sidebar-link">
-          <FiPlus size={20} />
-          {!isCollapsed && "Add Company"}
-        </Link>
+        {localStorage.getItem("userRole") === "manager" && (
+  <Link to="/add-company" className="sidebar-link">
+    <FiPlus size={20} />
+    {!isCollapsed && "Add Company"}
+  </Link>
+)}
+
         <Link
   to="#"
   className="sidebar-link"
