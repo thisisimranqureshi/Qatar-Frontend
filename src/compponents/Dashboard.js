@@ -5,6 +5,7 @@ import GroupMonthlySummary from './charts/GroupMonthlySummary';
 import GroupYearlySummary from './charts/GroupYearlySummary';
 import GroupProfitLossBarChart from './charts/GroupProfitLossBarChart';
 import TotalRevenue from './charts/Totalrevenue';
+import TotalExpense from './charts/TotalExpenseLineChart';
 import TopCompaniesPieChart from './charts/TopCompaniesPiecharts';
 import "../compponents/css/Dashboard.css";
 
@@ -18,6 +19,7 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState({});
   const [groupProfitLossData, setGroupProfitLossData] = useState([]);
   const [totalRevenueByYear, setTotalRevenueByYear] = useState([]);
+  const [totalExpenseByYear, setTotalExpenseByYear] = useState([]);
   const [topCompaniesPieData, setTopCompaniesPieData] = useState([]);
 
   const userRole = localStorage.getItem("userRole");
@@ -33,6 +35,7 @@ const Dashboard = () => {
           setManagers(mgrs);
 
           let allRevenueEntries = [];
+          let allExpenseSubcategories = [];
           let allCompanies = [];
 
           const groupData = await Promise.all(
@@ -55,6 +58,7 @@ const Dashboard = () => {
 
               const expenses = detailed.flatMap(c => c.expenseEntries || []);
               const subExpenses = expenses.flatMap(e => e.subcategories || []);
+              allExpenseSubcategories.push(...subExpenses);
 
               const totalRev = revenue.reduce((sum, r) => sum + (+r.actualBudget || 0), 0);
               const totalExp = subExpenses.reduce((sum, e) => sum + (+e.actualBudget || 0), 0);
@@ -88,28 +92,43 @@ const Dashboard = () => {
 
           setTotalRevenueByYear(chartData);
 
-          // ✅ Prepare data for Top Companies Pie Chart
+          const expenseByYear = {};
+          allExpenseSubcategories.forEach(entry => {
+            const year = entry.year;
+            if (year) {
+              if (!expenseByYear[year]) expenseByYear[year] = 0;
+              expenseByYear[year] += Number(entry.actualBudget || 0);
+            }
+          });
+
+          const expenseChartData = Object.entries(expenseByYear)
+            .map(([year, totalExpense]) => ({
+              name: year,
+              actual: totalExpense
+            }))
+            .sort((a, b) => Number(a.name) - Number(b.name));
+
+          setTotalExpenseByYear(expenseChartData);
+
           const companyProfits = allCompanies.map((c) => {
             const totalRev = (c.revenueEntries || []).reduce(
               (sum, e) => sum + (+e.actualBudget || 0), 0);
             const totalExp = (c.expenseEntries || [])
               .flatMap(e => e.subcategories || [])
               .reduce((sum, s) => sum + (+s.actualBudget || 0), 0);
-          
+
             return {
               companyName: c.name,
               profit: totalRev - totalExp,
             };
           });
-          
-          // ✅ Only include companies with positive profit
+
           const top5 = companyProfits
             .filter(c => c.profit > 0)
             .sort((a, b) => b.profit - a.profit)
             .slice(0, 5);
-          
+
           setTopCompaniesPieData(top5);
-          
         })
         .catch(err => console.error(err));
     } else {
@@ -220,10 +239,13 @@ const Dashboard = () => {
         {(userRole === "ceo" || userRole === "admin") ? "Dashboard" : "Your Companies"}
       </h2>
 
-      {((userRole === "ceo" || userRole === "admin") && stage !== 'managers') ||
-        (userRole !== "ceo" && userRole !== "admin" && stage !== 'companies') ? (
+      {((
+        (userRole === "ceo" || userRole === "admin") && stage !== 'managers'
+      ) || (
+        (userRole !== "ceo" && userRole !== "admin") && stage !== 'companies'
+      )) && (
         <button className="back-button" onClick={handleBack}>Back</button>
-      ) : null}
+      )}
 
       {stage === "managers" && (userRole === "ceo" || userRole === "admin") && (
         <>
@@ -237,32 +259,49 @@ const Dashboard = () => {
           </div>
 
           {(groupProfitLossData.length > 0 && totalRevenueByYear.length > 0) && (
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '20px',
-              margin: '40px auto',
-              maxWidth: 1000,
-            }}>
-              <div style={{ flex: '1 1 45%', minWidth: 300 }}>
-                <h4 style={{ textAlign: 'center', marginBottom: 10 }}>Group Profit & Loss</h4>
-                <GroupProfitLossBarChart data={groupProfitLossData} small />
+            <>
+              {/* Row 1 */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '20px',
+                margin: '40px auto',
+                maxWidth: 1000,
+              }}>
+                <div style={{ flex: '1 1 45%', minWidth: 300 }}>
+                  <h4 style={{ textAlign: 'center', marginBottom: 10 }}>Group Profit & Loss</h4>
+                  <GroupProfitLossBarChart data={groupProfitLossData} small />
+                </div>
+                <div style={{ flex: '1 1 45%', minWidth: 300 }}>
+                  <h4 style={{ textAlign: 'center', marginBottom: 10 }}>Total Revenue (Yearly)</h4>
+                  <TotalRevenue data={totalRevenueByYear} small />
+                </div>
               </div>
-              <div style={{ flex: '1 1 45%', minWidth: 300 }}>
-                <h4 style={{ textAlign: 'center', marginBottom: 10 }}>Total Revenue (Yearly)</h4>
-                <TotalRevenue data={totalRevenueByYear} small />
-              </div>
-            </div>
-          )}
 
-          {topCompaniesPieData.length > 0 && (
-            <div style={{ marginTop: 40, maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}>
-              <h4 style={{ textAlign: 'center', marginBottom: 10 }}>
-                Top 5 Companies by Profit/Loss
-              </h4>
-              <TopCompaniesPieChart data={topCompaniesPieData} />
-            </div>
+              {/* Row 2 */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '20px',
+                margin: '20px auto',
+                maxWidth: 1000,
+              }}>
+                <div style={{ flex: '1 1 45%', minWidth: 300 }}>
+                  <h4 style={{ textAlign: 'center', marginBottom: 10 }}>Total Expense (Yearly)</h4>
+                  <TotalExpense data={totalExpenseByYear} small />
+                </div>
+                {topCompaniesPieData.length > 0 && (
+                  <div style={{ flex: '1 1 45%', minWidth: 300 }}>
+                    <h4 style={{ textAlign: 'center', marginBottom: 10 }}>
+                      Top 5 Companies by Profit/Loss
+                    </h4>
+                    <TopCompaniesPieChart data={topCompaniesPieData} />
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </>
       )}
@@ -341,14 +380,24 @@ const Dashboard = () => {
 
                 {!activeTab[cat.categoryName] || activeTab[cat.categoryName] === 'revenue' ? (
                   <div className="subtable">
-                    <table><thead><tr>
-                      <th>Subcategory</th><th>Month</th><th>Year</th><th>Expected</th><th>Actual</th>
-                    </tr></thead>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Subcategory</th>
+                          <th>Month</th>
+                          <th>Year</th>
+                          <th>Expected</th>
+                          <th>Actual</th>
+                        </tr>
+                      </thead>
                       <tbody>
                         {cat.revenueEntries.map((e, i) => (
                           <tr key={i}>
-                            <td>{e.subcategory}</td><td>{e.month}</td>
-                            <td>{e.year}</td><td>{e.expectedBudget}</td><td>{e.actualBudget}</td>
+                            <td>{e.subcategory}</td>
+                            <td>{e.month}</td>
+                            <td>{e.year}</td>
+                            <td>{e.expectedBudget}</td>
+                            <td>{e.actualBudget}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -356,15 +405,25 @@ const Dashboard = () => {
                   </div>
                 ) : (
                   <div className="subtable">
-                    <table><thead><tr>
-                      <th>Subcategory</th><th>Month</th><th>Year</th><th>Expected</th><th>Actual</th>
-                    </tr></thead>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Subcategory</th>
+                          <th>Month</th>
+                          <th>Year</th>
+                          <th>Expected</th>
+                          <th>Actual</th>
+                        </tr>
+                      </thead>
                       <tbody>
                         {cat.expenseEntries.flatMap((e) =>
                           (e.subcategories || []).map((s, i) => (
                             <tr key={i}>
-                              <td>{s.subcategory}</td><td>{s.month}</td>
-                              <td>{s.year}</td><td>{s.expectedBudget}</td><td>{s.actualBudget}</td>
+                              <td>{s.subcategory}</td>
+                              <td>{s.month}</td>
+                              <td>{s.year}</td>
+                              <td>{s.expectedBudget}</td>
+                              <td>{s.actualBudget}</td>
                             </tr>
                           ))
                         )}
