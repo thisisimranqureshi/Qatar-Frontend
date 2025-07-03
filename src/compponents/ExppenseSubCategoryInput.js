@@ -17,6 +17,10 @@ const ExpenseSubCategoryInput = () => {
   const [selectedYear, setSelectedYear] = useState('');
   const [selectedMonth, setSelectedMonth] = useState('');
 
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [subToEdit, setSubToEdit] = useState('');
+  const [newSubcategoryName, setNewSubcategoryName] = useState('');
+
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
   useEffect(() => {
@@ -79,6 +83,30 @@ const ExpenseSubCategoryInput = () => {
     return grouped;
   };
 
+  const openEditModal = (subName) => {
+    setSubToEdit(subName);
+    setNewSubcategoryName(subName);
+    setEditModalOpen(true);
+  };
+
+  const handleEditSave = async () => {
+    try {
+      await axios.put(
+        `http://localhost:3500/api/expense/update-subcategory/${companyId}`,
+        {
+          oldName: subToEdit,
+          newName: newSubcategoryName,
+          categoryName,
+        }
+      );
+      setEditModalOpen(false);
+      fetchEntries();
+    } catch (err) {
+      console.error("Failed to update subcategory name:", err);
+      alert("Could not update subcategory name.");
+    }
+  };
+
   const uniqueYears = [...new Set(entries.map(e => e.year))];
   const filteredEntries = entries.filter(entry => {
     const matchYear = selectedYear ? entry.year.toString() === selectedYear : true;
@@ -90,7 +118,11 @@ const ExpenseSubCategoryInput = () => {
 
   return (
     <div className="expense-subcategory-form-container">
-      <h2>Add Expense Subcategory</h2>
+      <h2 className="expense-category-title">
+        Category: {categoryName || 'N/A'}
+      </h2>
+
+      <h3>Add Expense Subcategory</h3>
 
       <form onSubmit={handleSubmit}>
         <div className="input-trio">
@@ -164,47 +196,56 @@ const ExpenseSubCategoryInput = () => {
           </select>
         </div>
       )}
-<div className="subcategory-table-container">
-  <div className="expense-subcategory-row">
-    {Object.keys(groupedEntries).map((subName, idx) => {
-      const subEntries = groupedEntries[subName];
-      const totalExpected = subEntries.reduce((sum, entry) => sum + entry.expectedBudget, 0);
-      const totalActual = subEntries.reduce((sum, entry) => sum + entry.actualBudget, 0);
 
-      return (
-        <div key={idx} className="subcategory-table-wrapper">
-          <h3 className="subcategory-heading">{subName}</h3>
-          <table className="subcategory-table">
-            <thead>
-              <tr>
-                <th>Month</th>
-                <th>Year</th>
-                <th>Expected</th>
-                <th>Actual</th>
-              </tr>
-            </thead>
-            <tbody>
-              {subEntries.map((entry, i) => (
-                <tr key={i}>
-                  <td>{entry.month}</td>
-                  <td>{entry.year}</td>
-                  <td>Rs. {entry.expectedBudget.toLocaleString()}</td>
-                  <td>Rs. {entry.actualBudget.toLocaleString()}</td>
-                </tr>
-              ))}
-              <tr className="total-row">
-                <td colSpan="2">Total</td>
-                <td>Rs. {totalExpected.toLocaleString()}</td>
-                <td>Rs. {totalActual.toLocaleString()}</td>
-              </tr>
-            </tbody>
-          </table>
+      <div className="subcategory-table-container">
+        <div className="expense-subcategory-row">
+          {Object.keys(groupedEntries).map((subName, idx) => {
+            const subEntries = groupedEntries[subName];
+            const totalExpected = subEntries.reduce((sum, entry) => sum + entry.expectedBudget, 0);
+            const totalActual = subEntries.reduce((sum, entry) => sum + entry.actualBudget, 0);
+
+            return (
+              <div key={idx} className="subcategory-table-wrapper">
+                <div className="subcategory-header">
+                  <h3 className="subcategory-heading">{subName}</h3>
+                  <button
+                    className="edit-subcategory-btn"
+                    onClick={() => openEditModal(subName)}
+                  >
+                    Edit
+                  </button>
+                </div>
+
+                <table className="subcategory-table">
+                  <thead>
+                    <tr>
+                      <th>Month</th>
+                      <th>Year</th>
+                      <th>Expected</th>
+                      <th>Actual</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {subEntries.map((entry, i) => (
+                      <tr key={i}>
+                        <td>{entry.month}</td>
+                        <td>{entry.year}</td>
+                        <td>Rs. {entry.expectedBudget.toLocaleString()}</td>
+                        <td>Rs. {entry.actualBudget.toLocaleString()}</td>
+                      </tr>
+                    ))}
+                    <tr className="total-row">
+                      <td colSpan="2">Total</td>
+                      <td>Rs. {totalExpected.toLocaleString()}</td>
+                      <td>Rs. {totalActual.toLocaleString()}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            );
+          })}
         </div>
-      );
-    })}
-  </div>
-</div>
-
+      </div>
 
       <div className="grand-total">
         <h3>Grand Total</h3>
@@ -223,6 +264,23 @@ const ExpenseSubCategoryInput = () => {
           </tbody>
         </table>
       </div>
+
+      {editModalOpen && (
+        <div className="edit-modal-overlay">
+          <div className="edit-modal">
+            <h3>Edit Subcategory Name</h3>
+            <input
+              type="text"
+              value={newSubcategoryName}
+              onChange={(e) => setNewSubcategoryName(e.target.value)}
+            />
+            <div className="edit-modal-buttons">
+              <button onClick={handleEditSave}>Save</button>
+              <button onClick={() => setEditModalOpen(false)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

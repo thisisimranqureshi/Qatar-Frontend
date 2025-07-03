@@ -6,6 +6,8 @@ import './css/Home.css';
 function Home() {
   const navigate = useNavigate();
   const [companies, setCompanies] = useState([]);
+  const [editingCompany, setEditingCompany] = useState(null);
+  const [newCompanyName, setNewCompanyName] = useState('');
   const userName = localStorage.getItem('userName');
 
   useEffect(() => {
@@ -38,13 +40,46 @@ function Home() {
     }
   };
 
+  const handleEditClick = (company) => {
+    setEditingCompany(company);
+    setNewCompanyName(company.name);
+  };
+
+  const handleEditSave = async () => {
+    try {
+      await axios.put(`http://localhost:3500/companies/${editingCompany._id}`, {
+        name: newCompanyName
+      });
+      // update state
+      setCompanies((prev) =>
+        prev.map((c) =>
+          c._id === editingCompany._id
+            ? { ...c, name: newCompanyName }
+            : c
+        )
+      );
+      setEditingCompany(null);
+    } catch (err) {
+      console.error('Error updating company:', err);
+      alert('Failed to update the company name.');
+    }
+  };
+
+  const handleEditCancel = () => {
+    setEditingCompany(null);
+  };
+
   return (
     <div className="home-container">
       <div className="home-top-bar">
         <h2>Companies</h2>
       </div>
 
-      {userName && <p className="user-tag">Logged in as: <strong>{userName}</strong></p>}
+      {userName && (
+        <p className="user-tag">
+          Logged in as: <strong>{userName}</strong>
+        </p>
+      )}
 
       <div className="company-grid">
         {companies.length === 0 ? (
@@ -52,17 +87,49 @@ function Home() {
         ) : (
           companies.map((company) => (
             <div key={company._id} className="company-card">
-              <div className="company-info" onClick={() => handleCompanyClick(company._id)}>
+              <div
+                className="company-info"
+                onClick={() => handleCompanyClick(company._id)}
+              >
                 <h3>{company.name}</h3>
                 <p>{company.location}</p>
               </div>
-              <button className="delete-button" onClick={() => handleDeleteCompany(company._id)}>
-                Delete
-              </button>
+              <div className="button-group">
+                <button
+                  className="edit-button"
+                  onClick={() => handleEditClick(company)}
+                >
+                  Edit
+                </button>
+                <button
+                  className="delete-button"
+                  onClick={() => handleDeleteCompany(company._id)}
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           ))
         )}
       </div>
+
+      {/* Modal */}
+      {editingCompany && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h3>Edit Company Name</h3>
+            <input
+              type="text"
+              value={newCompanyName}
+              onChange={(e) => setNewCompanyName(e.target.value)}
+            />
+            <div className="modal-buttons">
+              <button onClick={handleEditSave}>Save</button>
+              <button onClick={handleEditCancel}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

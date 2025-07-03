@@ -90,7 +90,11 @@ const RevenueSubCategory = () => {
 
   return (
     <div className="revenue-subcategory-form-container">
-      <h2>Add Revenue Subcategory</h2>
+      <h2 className="revenue-category-title">
+        Category: {categoryName || 'N/A'}
+      </h2>
+
+      <h3>Add Revenue Subcategory</h3>
 
       <form onSubmit={handleSubmit}>
         <div className="revenue-input-trio">
@@ -160,69 +164,68 @@ const RevenueSubCategory = () => {
           </select>
         </div>
       )}
-<div className="revenue-subcategory-table-container">
-  {
-    Object.entries(groupedEntries).reduce((rows, [name, subEntries], idx, arr) => {
-      if (idx % 2 === 0) {
-        const second = arr[idx + 1];
 
-        rows.push(
-          <div key={idx} className="revenue-subcategory-row">
-            {[
-              [name, subEntries],
-              ...(second ? [second] : [])
-            ].map(([subName, entries], i) => {
-              const totalExpected = entries.reduce((sum, entry) => sum + entry.expectedBudget, 0);
-              const totalActual = entries.reduce((sum, entry) => sum + entry.actualBudget, 0);
+      <div className="revenue-subcategory-table-container">
+        {
+          Object.entries(groupedEntries).reduce((rows, [name, subEntries], idx, arr) => {
+            if (idx % 2 === 0) {
+              const second = arr[idx + 1];
 
-              return (
-                <div key={i} className="revenue-subcategory-table-wrapper">
-                  <h3 className="revenue-subcategory-heading">{subName}</h3>
-                  <table className="revenue-subcategory-table">
-                    <thead>
-                      <tr>
-                        <th>Month</th>
-                        <th>Year</th>
-                        <th>Expected</th>
-                        <th>Actual</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {entries.map((entry, j) => (
-                        <tr key={j}>
-                          <td>{entry.month}</td>
-                          <td>{entry.year}</td>
-                          <td>Rs. {entry.expectedBudget.toLocaleString()}</td>
-                          <td>Rs. {entry.actualBudget.toLocaleString()}</td>
-                        </tr>
-                      ))}
-                      <tr className="revenue-total-row">
-                        <td colSpan="2">Total</td>
-                        <td>Rs. {totalExpected.toLocaleString()}</td>
-                        <td>Rs. {totalActual.toLocaleString()}</td>
-                      </tr>
-                    </tbody>
-                  </table>
+              rows.push(
+                <div key={idx} className="revenue-subcategory-row">
+                  {[
+                    [name, subEntries],
+                    ...(second ? [second] : [])
+                  ].map(([subName, entries], i) => {
+                    const totalExpected = entries.reduce((sum, entry) => sum + entry.expectedBudget, 0);
+                    const totalActual = entries.reduce((sum, entry) => sum + entry.actualBudget, 0);
+
+                    return (
+                      <div key={i} className="revenue-subcategory-table-wrapper">
+                        <h3 className="revenue-subcategory-heading">{subName}</h3>
+                        <table className="revenue-subcategory-table">
+                          <thead>
+                            <tr>
+                              <th>Month</th>
+                              <th>Year</th>
+                              <th>Expected</th>
+                              <th>Actual</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {entries.map((entry, j) => (
+                              <tr key={j}>
+                                <td>{entry.month}</td>
+                                <td>{entry.year}</td>
+                                <td>Rs. {entry.expectedBudget.toLocaleString()}</td>
+                                <td>Rs. {entry.actualBudget.toLocaleString()}</td>
+                              </tr>
+                            ))}
+                            <tr className="revenue-total-row">
+                              <td colSpan="2">Total</td>
+                              <td>Rs. {totalExpected.toLocaleString()}</td>
+                              <td>Rs. {totalActual.toLocaleString()}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    );
+                  })}
                 </div>
               );
-            })}
-          </div>
-        );
-      }
-      return rows;
-    }, [])
-  }
-</div>
-
-
+            }
+            return rows;
+          }, [])
+        }
+      </div>
 
       <div className="revenue-grand-total">
         <h3>Grand Total</h3>
         <table className="revenue-grand-total-table">
           <thead>
             <tr>
-              <th>Total Expected Budget</th>
-              <th>Total Actual Budget</th>
+              <th>Total Expected revenue</th>
+              <th>Total Actual Revenue</th>
             </tr>
           </thead>
           <tbody>
